@@ -15,6 +15,7 @@ class Rescale(torch.nn.Module):
         return x
 
 class RealNVP(torch.nn.Module):
+<<<<<<< HEAD
     """ This is a class for implementing the Real NVP (Non-Volume Preserving) network 
     for Density Estimation. It is based on the principle of invertible, bijective mappings
     or transformations that map a given complex distribution of data to a latent space, 
@@ -59,6 +60,11 @@ class RealNVP(torch.nn.Module):
           sample() : This function is used to draw a sample from the learnt distribution of the data
                      from the latent space Z
              
+=======
+    """
+    RealNVP module.
+    Adapted from https://github.com/senya-ashukha/real-nvp-pytorch
+>>>>>>> 3acb3dbfc6ed59dc55a19f1bb29ca0f8db5f3eaa
     """
     def __init__(self, nets, mask, prior):
         super(RealNVP, self).__init__()
