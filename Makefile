@@ -83,7 +83,9 @@ test:
 # Creates the model and log files using the dependencies provided earlier
 init:
 	mkdir -p $(MODELS) $(LOG)
-	ln -s $(realpath data) $(EXP_DIR)/data
+	mkdir -p $(EXP_DIR)/data
+	cp $(training_data) $(testing_data) $(EXP_DIR)/data
+	ln -s $(realpath data)/phoneme_map_61_to_39.json $(EXP_DIR)/data/phoneme_map_61_to_39.json
 	ln -s $(realpath bin) $(EXP_DIR)/bin
 	ln -s $(realpath src) $(EXP_DIR)/src
 	cp default.json $(EXP_DIR)

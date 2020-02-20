@@ -90,8 +90,10 @@ if __name__ == "__main__":
     train_outfiles = [train_inputfile.replace(".pkl", "_" + str(i+1) + ".pkl") for i in range(nclasses)]
     test_outfiles = [test_inputfile.replace(".pkl", "_" + str(i+1) + ".pkl") for i in range(nclasses)]
     data_folder = os.path.dirname(test_inputfile)
-
+    print(train_outfiles)
+    print(test_outfiles)
     classmap = read_classmap(data_folder)
+    print(classmap)
     n_existing = len(classmap)
 
     if totclasses != 39 and totclasses != 61:

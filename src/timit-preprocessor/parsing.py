@@ -35,7 +35,6 @@ def main(args=None):
                 for sentence in sentences:
                     wav_file = os.path.join(task_dir, sentence + extension)
                     f.write('{}-{}-{} {}\n'.format(person, task, sentence, os.path.abspath(wav_file)))
-
                     phone_seq_file = os.path.join(task_dir, sentence+'.PHN')
                     phone_seq = []
                     with open(phone_seq_file, "r+") as pf:

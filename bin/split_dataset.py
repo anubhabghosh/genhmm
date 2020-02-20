@@ -7,7 +7,7 @@ from gm_hmm.src.utils import read_classmap,to_phoneme_level,flip, phn61_to_phn39
 from functools import partial
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Split a test dataset according to an existing class map.")
+    parser = argparse.ArgumentParser(description="Split a dataset according to an existing class map.")
     parser.add_argument('-input', metavar="<Input dataset to split>", type=str)
     parser.add_argument('-classmap', metavar="<class_map.json file>", type=str)
     parser.add_argument('-totclass', metavar="<Total number of classes>", type=int)
