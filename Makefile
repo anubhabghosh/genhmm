@@ -56,12 +56,21 @@ MODELS_INTERM=$(shell echo $(MODELS)/epoch{1..$(nepochs)})
 TEST_INTERM=$(shell echo {1..$(nepochs)})
 
 # Defines the training data used with proper path
-training_data=$(DATA)/train.$(nfeats).pkl
+ifndef mct
+	training_data=$(DATA)/train.$(nfeats).pkl
+else
+	training_data=$(DATA)/train.$(nfeats)_all.pkl
+endif
+#training_data=$(DATA)/train.$(nfeats).$(noise).pkl
 
 # If Clean data is used for testing, then 'noise' is not used
 ifndef noise
+#	training_data=$(DATA)/train.$(nfeats).pkl
 	testing_data=$(DATA)/test.$(nfeats).pkl
 else
+	#noise1=$(shell echo $(noise) | cut -f1 -d.)
+	#testing_data=$(DATA)/$(nfeats)feats/$(noise1)/test.$(nfeats).$(noise).pkl
+#	training_data=$(DATA)/train.$(nfeats).$(noise).pkl
 	testing_data=$(DATA)/test.$(nfeats).$(noise).pkl
 endif
 

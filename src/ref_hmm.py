@@ -221,6 +221,7 @@ class GMM_HMM(hmm.GMMHMM):
         for p in range(self.n_components):
             log_denses = self._compute_log_weighted_gaussian_densities(X, p)
             with np.errstate(under="ignore"):
+               # log_denses = np.clip(log_denses, np.min(log_denses), sys.float_info.max) # Uncomment for large sets 
                 prob_mix[:, p, :] = np.exp(log_denses) + np.finfo(np.float).eps
 
         prob_mix_sum = np.sum(prob_mix, axis=2)
@@ -260,8 +261,16 @@ class GMM_HMM(hmm.GMMHMM):
 
         # Maximizing cov
         centered_means = self.means_ - mus
-
+        
+        #NOTE:Broacast issues for large sets
         centered2 = (X[:, np.newaxis, np.newaxis, :] - new_means) ** 2
+        
+        #centered2_interm = np.zeros((X.shape[0], new_means.shape[0], new_means.shape[1], new_means.shape[2]))
+        #centered2_interm = np.zeros_like(new_means)
+        #np.subtract(X[:, np.newaxis, np.newaxis, :], new_means, centered2_interm)
+        #centered2_interm = np.subtract(X[:, np.newaxis, np.newaxis, :], new_means)
+        #centered2 = centered2_interm ** 2
+        #NOTE: Broadcast issues for large sets
         centered_means2 = centered_means ** 2
 
         alphas = self.covars_prior
@@ -271,6 +280,26 @@ class GMM_HMM(hmm.GMMHMM):
             'ijk,ijkl->jkl',
             post_comp_mix, centered2
         ) + lambdas[:, :, np.newaxis] * centered_means2 + 2 * betas
+        
+        #TODO:Fix Code for Broadcasting Overflow, but to be commented out during small sets
+        '''
+        chunk_size = 10000
+        n_chunks = X.shape[0] // chunk_size
+        new_cov_numer = np.zeros_like(new_means)
+
+        for i in range(n_chunks):        
+                                            
+            sl = slice(chunk_size * i, chunk_size * (i + 1))
+            centered2 = (X[sl, np.newaxis, np.newaxis, :] - new_means) ** 2
+            alphas = self.covars_prior
+            betas = self.covars_weight
+            new_cov_numer += np.einsum(
+                    'ijk,ijkl->jkl',
+                    post_comp_mix[sl, :, :], centered2
+                    ) 
+        
+        new_cov_numer += lambdas[:, :, np.newaxis] * centered_means2 + 2 * betas
+        '''
         new_cov_denom = (
                 post_mix_sum.sum(-1)[:, :, np.newaxis] + 1 + 2 * (alphas + 1)
         )
