@@ -33,14 +33,15 @@ def main(args=None):
                 raw_sentences = [x.split('.')[0] for x in os.listdir(task_dir)]
                 sentences = list(set(raw_sentences))
                 for sentence in sentences:
-                    wav_file = os.path.join(task_dir, sentence + extension)
-                    f.write('{}-{}-{} {}\n'.format(person, task, sentence, os.path.abspath(wav_file)))
-                    phone_seq_file = os.path.join(task_dir, sentence+'.PHN')
-                    phone_seq = []
-                    with open(phone_seq_file, "r+") as pf:
-                        for line in pf:
-                            phone_seq.append(line.split(' ')[-1].strip())
-                    l.write('{}-{}-{} {}\n'.format(person, task, sentence, ','.join(phone_seq)))
+                    if sentence:    
+                        wav_file = os.path.join(task_dir, sentence + extension)
+                        f.write('{}-{}-{} {}\n'.format(person, task, sentence, os.path.abspath(wav_file)))
+                        phone_seq_file = os.path.join(task_dir, sentence + '.PHN')
+                        phone_seq = []
+                        with open(phone_seq_file, "r+") as pf:
+                            for line in pf:
+                                phone_seq.append(line.split(' ')[-1].strip())
+                        l.write('{}-{}-{} {}\n'.format(person, task, sentence, ','.join(phone_seq)))
             
 
 if __name__ == "__main__":

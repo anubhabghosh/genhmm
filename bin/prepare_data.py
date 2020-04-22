@@ -10,6 +10,20 @@ from gm_hmm.src.utils import read_classmap,write_classmap,flip,\
 
 
 def get_phoneme_mapping(iphn, phn2int, n_taken=0):
+    """
+    This function takes an array of ints 'iphn' and a mapping dictionary 'phn2int' 
+    ----
+    Args:
+    
+    - iphn: List of integers that denote the class number which the phoneme is associated with
+    - phn2int: Dictionary describing the mapping from phones (phn) to integers (int) (sort of a codebook)
+    - n_taken: Possible number of classses already processed
+
+    Outputs:
+
+    - class2phn: A subdictionary that denotes the new subclass number and the corresponding phoneme associated for that subclass
+    - class2phn: A subdictionary that denotes the new subclass number and the corresponding original class no. associated for that subclass
+    """
     # Reverse the codebook for easier manipulation
     int2phn = flip(phn2int)
     # Define a sub-dictionary of the picked phonemes
@@ -19,15 +33,40 @@ def get_phoneme_mapping(iphn, phn2int, n_taken=0):
 
 
 def test_get_phoneme_mapping():
-    phn2int = {"a": 0, "b": 2, "c": 1, "d": 3}
+    """
+    A test function to check the functionality of the 'get_phoneme_mapping()' function 
+    """
+    phn2int = {"a": 0, "b": 2, "c": 1, "d": 3} 
     iphn = np.array([1, 2])
     assert(get_phoneme_mapping(iphn, phn2int) == {0:"c", 1:"b"})
     iphn = np.array([2, 1])
     assert(get_phoneme_mapping(iphn, phn2int) == {0:"b", 1:"c"})
 
-
-
 def prepare_data(fname_dtest=None, classmap_existing=None, fname_dtrain=None, n_phn=None,totclasses=None, verbose=False):
+    """
+    This is the function taht is repsonsible for reading the data files, both (training and test data in .pkl format)
+    and partitions the .pkl files on a per phoneme basis or a per class basis (because the task is Phone Recognition)
+    ----
+    Args:
+
+    - fname_dtest: full path of the test data file containing data and labels in .pkl format
+    - fname_dtrain: full path of the training data file containing data and labels in .pkl format
+    - classmap_existing: full path for the existing classmap dictionary file if present
+    - n_phn: No. of phonemes considered for partition of left to be retrieved
+    - totclasses: Total number of phonemes considered in the list
+    - verbose: Flag for controlling verbose output
+
+    Output:
+
+    - xtrain: Training data for the subclassed dataset
+    - ytrain: Training data label for the subclassed dataset
+    - xtrain: Training data for the subclassed dataset
+    - ytrain: Training data label for the subclassed dataset
+    - class2phn: A subdictionary that denotes the new subclass number and the corresponding phoneme associated for 
+                that subclass
+    - class2int: A subdictionary that denotes the new subclass number and the corresponding original class no. associated 
+                for that subclass
+    """
     # Read the datafiles
     te_DATA, te_keys, te_lengths, phn2int_61, te_PHN = pkl.load(open(fname_dtest, "rb"))
     tr_DATA, tr_keys, tr_lengths, tr_PHN = pkl.load(open(fname_dtrain, "rb"))
@@ -71,8 +110,6 @@ def prepare_data(fname_dtest=None, classmap_existing=None, fname_dtrain=None, n_
 
     return xtrain, ytrain, xtest, ytest, class2phn, class2int
 
-
-
 if __name__ == "__main__":
     usage = "Build separate datasets for each family of phonemes.\n\"" \
             "Each data set contains the sequences of one phoneme.\n"\
@@ -86,15 +123,16 @@ if __name__ == "__main__":
     nclasses, totclasses = parse("{:d}/{:d}", sys.argv[1])
     train_inputfile = sys.argv[2]
     test_inputfile = sys.argv[3]
-    # 
+
     train_outfiles = [train_inputfile.replace(".pkl", "_" + str(i+1) + ".pkl") for i in range(nclasses)]
     test_outfiles = [test_inputfile.replace(".pkl", "_" + str(i+1) + ".pkl") for i in range(nclasses)]
     data_folder = os.path.dirname(test_inputfile)
     print(train_outfiles)
     print(test_outfiles)
+
     classmap = read_classmap(data_folder)
-    print(classmap)
     n_existing = len(classmap)
+    print(classmap)
 
     if totclasses != 39 and totclasses != 61:
         print("(error)", "first argument must be [nclasses]/[61 or 39]", file=sys.stderr)
@@ -131,15 +169,12 @@ if __name__ == "__main__":
     # the dictionary size will not be len(classmap) + len(class2phn)
     assert (len(classmap) == nclasses)
 
-
-
     # Create only the classes that are left
     for i, ic in class2int.items():
         assert(not os.path.isfile(train_outfiles[i]))
         assert(not os.path.isfile(test_outfiles[i]))
         xtrain_c = xtrain[ytrain == ic]
         xtest_c = xtest[ytest == ic]
-        
         pkl.dump(xtrain_c, open(train_outfiles[i], "wb"))
         pkl.dump(xtest_c, open(test_outfiles[i], "wb"))
 

@@ -103,8 +103,8 @@ class RealNVP(torch.nn.Module):
         
         Hence, the list is reversed first and then iterated over all the layers
         The input is split into two parts z_id and z_s. The part involving z_id is 
-        passed through as identical and the part involving z_s is subjected to two operations of 
-        scaling (s(z_s)) and translation (t(z_s)). 
+        passed through as identical and the part involving z_id is subjected to two operations of 
+        scaling (s(z_id)) and translation (t(z_id)) and mxied with z_s. 
         
         The scaling and the translation output obtained here
         as variables s and t are chunked. The scaling output is actually to processed as tanh and the

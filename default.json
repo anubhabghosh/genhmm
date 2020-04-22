@@ -23,6 +23,27 @@
         "startprob_type": "first",
         "transmat_type": "triangular"
     },
+    "GLOW_Net":
+    {
+        "n_states":3,
+        "n_prob_components":3,
+        "em_skip":5,
+        "device":"cpu",
+        "lr": 0.004,
+        "net_H": 24,
+        "net_D": 40,
+        "p_drop":0,
+        "start_prob":"first",
+        "transmat_type":"triangular",
+        "K":4 ,
+        "L":2,
+        "permutation":"invconv",
+        "coupling":"affine",
+        "actnorm_scale":1.0,
+        "lu_decomposition":false,
+        "sq_factor":1.0,
+        "actnorm_flag":true    
+    },
     "GMM":
     {
         "n_states": 3,

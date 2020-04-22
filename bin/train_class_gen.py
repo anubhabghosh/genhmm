@@ -3,6 +3,7 @@ import sys
 from parse import parse
 import pickle as pkl
 from gm_hmm.src.genHMM import GenHMM, save_model, load_model
+from gm_hmm.src.genHMM_GLOW import GenHMM, save_model, load_model
 from gm_hmm.src.utils import pad_data, TheDataset, get_freer_gpu
 import torch
 from torch.utils.data import DataLoader
@@ -26,6 +27,7 @@ if __name__ == "__main__":
     except IndexError:
         param_file = "default.json"
 
+    network_type = "GLOW_Net"
 
     epoch_str, iclass_str = parse('epoch{}_class{}.mdlc',os.path.basename(out_mdl))
     train_class_inputfile = train_inputfile.replace(".pkl", "_{}.pkl".format(iclass_str))
@@ -42,12 +44,17 @@ if __name__ == "__main__":
         options = json.load(f_in)
 
     # adoptive to set number of states
-    options["Net"]["n_states"] = np.clip(int(np.floor(np.mean(l)/2)),
+    #options["Net"]["n_states"] = np.clip(int(np.floor(np.mean(l)/2)),
+    #                                     options["Train"]["n_states_min"],
+    #                                     options["Train"]["n_states_max"])
+    options[network_type]["n_states"] = np.clip(int(np.floor(np.mean(l)/2)),
                                          options["Train"]["n_states_min"],
                                          options["Train"]["n_states_max"])
+
     #  Load or create model
     if epoch_str == '1':
-        mdl = GenHMM(**options["Net"])
+    #    mdl = GenHMM(**options["Net"])
+         mdl = GenHMM(**options[network_type])
 
     else:
         # Load previous model

@@ -23,15 +23,17 @@ ifndef snr # if the SNR value is not defined, it initialises the SNR with a defa
 endif
 
 
-targets_= $(shell echo {test,train}.{13,39}.pkl) # The target file is a Pickle (pkl) file
-noise_targets_ = $(shell echo test.{13,39}.factory1.{5,15,20,25}dB.pkl) # The target file for Noisy output is also a Pickle (pkl) file
+#targets_= $(shell echo {train,test}.39.pkl)
+noise_targets_ = $(shell echo train.39.hfchannel.{10,15,20,25}dB.pkl)
 
-targets= $(addprefix $(DATA_OUT)/,$(targets_)) $(addprefix $(DATA_OUT)/,$(noise_targets_)) # Defines the complete target path using the previous paths
-interm=.data# Intermediate paths (will be deleted later probably)
-material=$(interm)/material# The intermediate path to the 'material' (Not yet clear!)
-processed=$(interm)/processed# The intermediate path to store 'processed data'
-# Defines a full path for the Intermediate files using Shell Echo (print statement of Shell)
-interm_files= $(shell echo $(material)/{train,test}.lbl) $(shell echo $(material)/test.factory1.{5,15,20,25}dB.lbl)
+targets= $(addprefix $(DATA_OUT)/,$(targets_)) $(addprefix $(DATA_OUT)/,$(noise_targets_))
+
+interm=.data
+material=$(interm)/material
+processed=$(interm)/processed
+
+interm_files= $(shell echo $(material)/{train,test}.lbl) $(shell echo $(material)/train.hfchannel.{10,15,20,25}dB.lbl)
+
 
 all: noise
 	
