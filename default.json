@@ -33,7 +33,7 @@
         "net_H": 24,
         "net_D": 40,
         "p_drop":0,
-        "start_prob":"first",
+        "start_prob_type":"first",
         "transmat_type":"triangular",
         "K":4 ,
         "L":2,

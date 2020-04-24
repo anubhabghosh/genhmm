@@ -3,7 +3,7 @@
 import os
 import sys
 import numpy as np
-from gm_hmm.src.glow_model import FlowModel_GLOW
+from gm_hmm.src.glow_model import FlowModel_GLOW, count_params
 import torch
 from torch import nn, distributions
 from gm_hmm.src._torch_hmmc import _compute_log_xi_sum, _forward, _backward
@@ -85,7 +85,7 @@ class GenHMM(torch.nn.Module):
                  net_H=28, net_D=14, K=4, L=2, mask_type="cross", p_drop=0.25,
                  startprob_type="first", transmat_type="random upper triangular",
                  permutation="invconv", coupling="affine", actnorm_scale=1.0,
-                 lu_decomposition=False, sq_factor=1.0, actnorm_flag=True):
+                 lu_decomposition=False, sq_factor=1, actnorm_flag=True):
         
         super(GenHMM, self).__init__()
 
@@ -156,14 +156,13 @@ class GenHMM(torch.nn.Module):
                         self.transmat_[i,j] = 0
 
         elif "ergodic" in transmat_type: 
-            self.transmat_ = torch.ones(self.n_states, self.n_states) \ 
-                             + torch.randn(self.n_states, self.n_states) * 0.01  # Initialises the transition prob. matrix as an ergodic matrix
+            self.transmat_ = torch.ones(self.n_states, self.n_states) + torch.randn(self.n_states, self.n_states) * 0.01  # Initialises the transition prob. matrix as an ergodic matrix
 
         normalize(self.transmat_, axis=1) # Normalizes column-wise so that the transitions of the HMM are valid
         return self
 
     def init_gen(self, n_D, n_H, K, L, permutation='invconv', coupling='affine',
-                 actnorm_scale = 1.0, lu_decomposition = False, sq_factor = 1.0,
+                 actnorm_scale = 1.0, lu_decomposition = False, sq_factor = 1,
                  actnorm_flag = True, p_drop=0):
         
         """
@@ -192,7 +191,7 @@ class GenHMM(torch.nn.Module):
         
         ### torch MultivariateNormal logprob gets error when input is cuda tensor
         ### thus changing it to implementation
-        prior = distributions.MultivariateNormal(torch.zeros(D).to(self.device), torch.eye(D).to(self.device))
+        prior = distributions.MultivariateNormal(torch.zeros(n_D).to(self.device), torch.eye(n_D).to(self.device))
         # prior = lambda x: GaussianDiag.logp(torch.zeros(D), torch.zeros(D), x)
         # self.flow = RealNVP(nets, nett, masks, prior)
 
@@ -200,14 +199,16 @@ class GenHMM(torch.nn.Module):
         self.pi = self.dtype(np.random.rand(self.n_states, self.n_prob_components))
         normalize(self.pi, axis=1)
         self.logPIk_s = self.pi.log()
-
+        n_D = int(n_D)
+        n_H = int(n_H)
         # Init networks
         self.networks = [FlowModel_GLOW(n_D, n_H, K, L, prior, permutation, coupling,\
                                         actnorm_scale, lu_decomposition, sq_factor, \
                                         actnorm_flag, p_drop)
                                         
                                         for _ in range(self.n_prob_components*self.n_states)]
-
+        total_num_params, total_num_trainable_params = count_params(self.networks[0])
+        print("The total number of params: {} and the number of trainable params:{}".format(total_num_params, total_num_trainable_params))
         # Reshape in a n_states x n_prob_components array
         self.networks = np.array(self.networks).reshape(self.n_states, self.n_prob_components)
         
@@ -504,6 +505,7 @@ class GenHMM(torch.nn.Module):
         
         """
         x, x_mask = batch
+        x_mask = x_mask.type(torch.bool)
         batch_size = x.shape[0]
         n_samples = x.shape[1]
 
@@ -546,6 +548,7 @@ class GenHMM(torch.nn.Module):
             # Two posteriors to be computed here:
             # 1. the hidden state posterior, post
             old_llh, old_loglh_sk = self._getllh(self.old_networks, batch)
+            x_mask = x_mask.type(torch.bool)
             old_llh[~x_mask] = 0
             old_logprob, old_fwdlattice = self._do_forward_pass(old_llh, x_mask)
             # assert ((old_logprob <= 0).all())
@@ -556,7 +559,7 @@ class GenHMM(torch.nn.Module):
 
             old_bwdlattice = self._do_backward_pass(old_llh, x_mask)
             posteriors = self._compute_posteriors(old_fwdlattice, old_bwdlattice)
-
+            x_mask = x_mask.type(torch.bool)
             posteriors[~x_mask] = 0
             post = posteriors
 
@@ -569,6 +572,7 @@ class GenHMM(torch.nn.Module):
             
             logpk_sX = log_num - log_denom.reshape(batch_size, n_samples, self.n_states, 1)
             ## To Do: normalize logpk_sX before set un-masked values
+            x_mask = x_mask.type(torch.bool)
             logpk_sX[~x_mask] = 0
         
         # hmm parameters should be updated based on old model
@@ -582,6 +586,7 @@ class GenHMM(torch.nn.Module):
 
         # compute sequence log-likelihood in self.networks, just to monitor the self.networks performance
         with torch.no_grad():
+            x_mask = x_mask.type(torch.bool)
             llh[~x_mask] = 0
             logprob, _ = self._do_forward_pass(llh, x_mask)
         # assert((logprob <= 0).all())
@@ -652,7 +657,7 @@ class GenHMM(torch.nn.Module):
                 self.optimizer.zero_grad()            
                 loss, logprob_ = self.forward(data, testing=False)
                 loss.backward()
-            
+                #print("Loss for EM-Step:{} is {}".format(i, loss))
                 self.optimizer.step()
                 total_loss += loss.detach().data
                 total_logprob += logprob_

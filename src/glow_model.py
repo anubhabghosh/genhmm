@@ -10,9 +10,9 @@ from torch import distributions
 from sklearn import datasets
 import matplotlib.pyplot as plt
 from torch.nn.parameter import Parameter
-from glow_modules import *
-from ops import *
-from plot_functions import plot_results
+from gm_hmm.src.glow_modules import *
+from gm_hmm.src.ops import *
+from gm_hmm.src.plot_functions import plot_results
 from torch.autograd import Function, Variable, detect_anomaly
 from datetime import datetime
 
@@ -73,9 +73,10 @@ class FlowStep(nn.Module):
         assert coupling in self.flow_coupling_list, 'Unsupported flow coupling: {}'.format(coupling)
         self.permutation = permutation
         self.coupling = coupling
-       
+        self.actnorm_flag = actnorm_flag
         # activation normalization layer
-        if actnorm_flag:
+        
+        if self.actnorm_flag:
             self.actnorm = ActNorm(num_channels=in_channels, scale=actnorm_scale)
 
         # flow permutation layer
@@ -108,7 +109,8 @@ class FlowStep(nn.Module):
         """
         #z = copy.deepcopy(x)
         # Activation normalization layer
-        z, logdet = self.actnorm.forward(x, logdet=logdet)
+        if self.actnorm_flag:
+            z, logdet = self.actnorm.forward(x, logdet=logdet)
 
         # Flow permutation layer
         if self.permutation == 'invconv':
@@ -174,7 +176,8 @@ class FlowStep(nn.Module):
             x = self.shuffle.reverse(x)
 
         # activation normalization layer
-        x, logdet = self.actnorm.reverse(x, logdet=logdet)
+        if self.actnorm_flag:
+            x, logdet = self.actnorm.reverse(x, logdet=logdet)
 
         return x, logdet 
 
@@ -261,8 +264,10 @@ class FlowModel_GLOW(nn.Module):
         Defines the function that forms one complete flow through the total network
         in the normalizing direction
         """
+        C = 0
         for layer in self.nets:
             z, logdet = layer.forward(z, logdet)
+            C = C + 1
         return z, logdet
 
     def g(self, z, eps_std=None):
@@ -284,11 +289,15 @@ class FlowModel_GLOW(nn.Module):
         """
         # Ensure that the input has proper dimensions (channel-wise)
         if x.shape[1] != in_channels:
-            X = X.permute(0,2,1)
+            x = x.permute(0,2,1)
         else:
             pass
         z, logp = self.f(x)
         #return self.prior.log_prob(z) + logp
+        if z.shape[1] == in_channels:
+            z = z.permute(0,2,1)
+        else:
+            pass
         px = self.prior.log_prob(z) + logp.view(logp.shape[0], 1)
         if x_mask == None: # x_mask decides if there are appended zeros for the samples which are not to be processed
             return px
@@ -373,7 +382,7 @@ def main():
         pass
     n_HC = 256
     K = 4 # Depth of Flow
-    L = 2 # No. of Layers in Multi-Scale architecture
+    L = 1 # No. of Layers in Multi-Scale architecture
     actnorm_flag = True
     p_drop=0.0 # Dropout Rate
     prior = distributions.MultivariateNormal(torch.zeros(n_IC), torch.eye(n_IC))

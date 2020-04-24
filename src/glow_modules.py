@@ -11,12 +11,12 @@ from math import log, pi, exp
 import numpy as np 
 from scipy import linalg as la
 import datetime as dt
-from ops import *
+from gm_hmm.src.ops import *
 
 # Defines a class for the ActNorm Module
 class ActNorm(nn.Module):
 
-    def __init__(self, num_channels, scale = 1., logscale_factor=3., batch_variance=False):
+    def __init__(self, num_channels, scale = 1., logscale_factor=1e-3, batch_variance=False):
 
         super(ActNorm, self).__init__()
         self.num_channels = num_channels

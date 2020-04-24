@@ -2,7 +2,7 @@ import os
 import sys
 from parse import parse
 import pickle as pkl
-from gm_hmm.src.genHMM import GenHMM, save_model, load_model
+#from gm_hmm.src.genHMM import GenHMM, save_model, load_model
 from gm_hmm.src.genHMM_GLOW import GenHMM, save_model, load_model
 from gm_hmm.src.utils import pad_data, TheDataset, get_freer_gpu
 import torch
@@ -12,7 +12,7 @@ import numpy as np
 import time
 
 if __name__ == "__main__":
-    usage = "python bin/train_class.py data/train13.pkl models/epoch1_class1.mdlc param.json"
+    usage = "python bin/train_class_gen.py data/train.39.pkl models/epoch1_class1.mdlc default.json"
     if len(sys.argv) < 3 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(usage)
         sys.exit(1)
