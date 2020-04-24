@@ -302,7 +302,7 @@ class FlowModel_GLOW(nn.Module):
         if x_mask == None: # x_mask decides if there are appended zeros for the samples which are not to be processed
             return px
         else:
-            px[~x_mask] = 0
+            px[1 - x_mask] = 0
             return px
         
     def sample(self, batchSize, in_channels): 

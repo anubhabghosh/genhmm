@@ -505,7 +505,6 @@ class GenHMM(torch.nn.Module):
         
         """
         x, x_mask = batch
-        x_mask = x_mask.type(torch.bool)
         batch_size = x.shape[0]
         n_samples = x.shape[1]
 
@@ -548,8 +547,7 @@ class GenHMM(torch.nn.Module):
             # Two posteriors to be computed here:
             # 1. the hidden state posterior, post
             old_llh, old_loglh_sk = self._getllh(self.old_networks, batch)
-            x_mask = x_mask.type(torch.bool)
-            old_llh[~x_mask] = 0
+            old_llh[1 - x_mask] = 0
             old_logprob, old_fwdlattice = self._do_forward_pass(old_llh, x_mask)
             # assert ((old_logprob <= 0).all())
 
@@ -559,8 +557,7 @@ class GenHMM(torch.nn.Module):
 
             old_bwdlattice = self._do_backward_pass(old_llh, x_mask)
             posteriors = self._compute_posteriors(old_fwdlattice, old_bwdlattice)
-            x_mask = x_mask.type(torch.bool)
-            posteriors[~x_mask] = 0
+            posteriors[1 - x_mask] = 0
             post = posteriors
 
             # 2. the probability model components posterior, k condition on hidden state, observation and hmm model
@@ -572,8 +569,7 @@ class GenHMM(torch.nn.Module):
             
             logpk_sX = log_num - log_denom.reshape(batch_size, n_samples, self.n_states, 1)
             ## To Do: normalize logpk_sX before set un-masked values
-            x_mask = x_mask.type(torch.bool)
-            logpk_sX[~x_mask] = 0
+            logpk_sX[1 - x_mask] = 0
         
         # hmm parameters should be updated based on old model
         if self.update_HMM and not testing:
@@ -586,8 +582,7 @@ class GenHMM(torch.nn.Module):
 
         # compute sequence log-likelihood in self.networks, just to monitor the self.networks performance
         with torch.no_grad():
-            x_mask = x_mask.type(torch.bool)
-            llh[~x_mask] = 0
+            llh[1 - x_mask] = 0
             logprob, _ = self._do_forward_pass(llh, x_mask)
         # assert((logprob <= 0).all())
         # Brackets = log-P(X | chi, S) + log-P(chi | s)
