@@ -117,7 +117,7 @@ def split_channel(tensor, split_type='simple'):
         # return tensor[:, 0::2, ...], tensor[:, 1::2, ...]
 
 
-def cat_channel(a, b, split_dim):
+def cat_channel(a, b, split_dim=1):
     """
     Concatenates channels of tensors
 

@@ -73,10 +73,9 @@ class FlowStep(nn.Module):
         assert coupling in self.flow_coupling_list, 'Unsupported flow coupling: {}'.format(coupling)
         self.permutation = permutation
         self.coupling = coupling
-        self.actnorm_flag = actnorm_flag
+       
         # activation normalization layer
-        
-        if self.actnorm_flag:
+        if actnorm_flag:
             self.actnorm = ActNorm(num_channels=in_channels, scale=actnorm_scale)
 
         # flow permutation layer
@@ -109,8 +108,7 @@ class FlowStep(nn.Module):
         """
         #z = copy.deepcopy(x)
         # Activation normalization layer
-        if self.actnorm_flag:
-            z, logdet = self.actnorm.forward(x, logdet=logdet)
+        z, logdet = self.actnorm.forward(x, logdet=logdet)
 
         # Flow permutation layer
         if self.permutation == 'invconv':
@@ -133,7 +131,8 @@ class FlowStep(nn.Module):
             #scale = torch.exp(scale)
             z2 += shift
             z2 *= scale
-            logdet = reduce_sum(torch.log(scale), dim=[1, 2]) + logdet
+            #logdet = reduce_sum(torch.log(scale), dim=[1, 2]) + logdet
+            logdet = reduce_sum(torch.log(scale), dim=[1]) + logdet
 
         z = cat_channel(z1, z2, split_dim=1) # rejoin the two parts of the channel (along dim 1) and formulate the output tensor
         return z, logdet
@@ -163,7 +162,8 @@ class FlowStep(nn.Module):
             #scale = torch.exp(scale)
             x2 /= scale
             x2 -= shift
-            logdet = -reduce_sum(torch.log(scale), dim=[1, 2]) + logdet
+            #logdet = -reduce_sum(torch.log(scale), dim=[1, 2]) + logdet
+            logdet = -reduce_sum(torch.log(scale), dim=[1]) + logdet
         
         x = cat_channel(x1, x2, split_dim=1) # Rejoins the output tensor along the dimension 1 
 
@@ -176,8 +176,7 @@ class FlowStep(nn.Module):
             x = self.shuffle.reverse(x)
 
         # activation normalization layer
-        if self.actnorm_flag:
-            x, logdet = self.actnorm.reverse(x, logdet=logdet)
+        x, logdet = self.actnorm.reverse(x, logdet=logdet)
 
         return x, logdet 
 
@@ -264,10 +263,8 @@ class FlowModel_GLOW(nn.Module):
         Defines the function that forms one complete flow through the total network
         in the normalizing direction
         """
-        C = 0
         for layer in self.nets:
             z, logdet = layer.forward(z, logdet)
-            C = C + 1
         return z, logdet
 
     def g(self, z, eps_std=None):
@@ -296,10 +293,9 @@ class FlowModel_GLOW(nn.Module):
         #return self.prior.log_prob(z) + logp
         if z.shape[1] == in_channels:
             z = z.permute(0,2,1)
-        else:
-            pass
-        px = self.prior.log_prob(z) + logp.view(logp.shape[0], 1)
-        if x_mask == None: # x_mask decides if there are appended zeros for the samples which are not to be processed
+        #px = self.prior.log_prob(z) + logp.view(logp.shape[0], 1)
+        px = self.prior.log_prob(z) + logp
+        if type(x_mask) == type(None): # x_mask decides if there are appended zeros for the samples which are not to be processed
             return px
         else:
             px[1 - x_mask] = 0
@@ -365,6 +361,8 @@ def NN(in_channels, hidden_channels, out_channels):
     """
 def main():
 
+    np.random.seed(2)
+    torch.manual_seed(2)
     # Define the input dataset and convert it in the format X : (batchsize x no_of_samples x no_of_channels)
     n_input_samples = 600
     X = datasets.make_moons(n_samples=n_input_samples, noise=.05)[0].astype(np.float32)
@@ -380,9 +378,9 @@ def main():
         X = X.permute(0,2,1)
     else:
         pass
-    n_HC = 256
+    n_HC = 128
     K = 4 # Depth of Flow
-    L = 1 # No. of Layers in Multi-Scale architecture
+    L = 2 # No. of Layers in Multi-Scale architecture
     actnorm_flag = True
     p_drop=0.0 # Dropout Rate
     prior = distributions.MultivariateNormal(torch.zeros(n_IC), torch.eye(n_IC))
@@ -397,8 +395,8 @@ def main():
     # Define the optimizer
     optimizer = torch.optim.Adam([p for p in flow.parameters() if p.requires_grad == True], lr=1e-4)
     
-    N_iter = 5000
-    savedir = "./NormFlowModel/GLOW_Model/figures_aliter_gcdrut_nsamples_LU" + str(n_input_samples) + "/"
+    N_iter = 4000
+    savedir = "./NormFlowModel/GLOW_Model/figures_aliter_nsamples_LU" + str(n_input_samples) + "/"
     # Training the model
     start_time = datetime.now()
 

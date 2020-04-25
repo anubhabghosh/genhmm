@@ -16,7 +16,7 @@ from gm_hmm.src.ops import *
 # Defines a class for the ActNorm Module
 class ActNorm(nn.Module):
 
-    def __init__(self, num_channels, scale = 1., logscale_factor=1e-3, batch_variance=False):
+    def __init__(self, num_channels, scale = 1., logscale_factor=3., batch_variance=False):
 
         super(ActNorm, self).__init__()
         self.num_channels = num_channels
@@ -74,7 +74,8 @@ class ActNorm(nn.Module):
         z = (x  + self.bias) * torch.exp(logs)
         if logdet is not None:
 
-            logdet_factor = count_pixels(x)
+            #logdet_factor = count_pixels(x)
+            logdet_factor = 1
             dlogdet = 1 * logdet_factor * torch.sum(logs)
             logdet += dlogdet
 
@@ -99,7 +100,8 @@ class ActNorm(nn.Module):
 
         if logdet is not None:
 
-            logdet_factor = count_pixels(z)
+            logdet_factor = 1
+            # logdet_factor = count_pixels(z)
             dlogdet = -1 * logdet_factor * torch.sum(logs)
             logdet += dlogdet
 
@@ -296,7 +298,8 @@ class Invertible1x1Conv(nn.Module):
         :rtype: tuple(torch.Tensor, torch.Tensor)
         """
         if not self.lu_decomposition:
-            logdet_factor = count_pixels(z)  # H * W
+            logdet_factor = 1
+            #logdet_factor = count_pixels(z)  # H * W
             dlogdet = torch.log(torch.abs(torch.det(self.weight))) * logdet_factor
             weight = self.weight.view(*self.weight.shape, 1)
             x = F.conv1d(z, weight)
@@ -309,7 +312,8 @@ class Invertible1x1Conv(nn.Module):
             # U = upper triangular matrix with zeros on diagonal and diag(s) represents a 
             # diagonal matrix with the elements of U in original LU decomposition, i.e. s = torch.diag(U) 
             # after LU and then diagonal elements of U removed 
-            logdet_factor = count_pixels(z) # H * W
+            logdet_factor = 1
+            #logdet_factor = count_pixels(z) # H * W
             dlogdet = torch.sum(torch.log(torch.diag(torch.abs(self.s)))) * logdet_factor
             weight = torch.matmul(self.weight_P , torch.matmul(self.weight_L, (self.weight_U + self.s)))
             weight =  weight.view(*weight.shape, 1)
@@ -330,7 +334,8 @@ class Invertible1x1Conv(nn.Module):
         :rtype: tuple(torch.Tensor, torch.Tensor)
         """
         if not self.lu_decomposition:
-            logdet_factor = count_pixels(x)  # H * W
+            logdet_factor = 1
+            #logdet_factor = count_pixels(x)  # H * W
             dlogdet = torch.log(torch.abs(torch.det(self.weight))) * logdet_factor
             weight = self.weight.inverse().view(*self.weight.shape, 1)
             z = F.conv1d(x, weight)
@@ -343,7 +348,8 @@ class Invertible1x1Conv(nn.Module):
             # U = upper triangular matrix with zeros on diagonal and diag(s) represents a 
             # diagonal matrix with the elements of U in original LU decomposition, i.e. s = torch.diag(U) 
             # after LU and then diagonal elements of U removed 
-            logdet_factor = count_pixels(x) # H * W
+            logdet_factor = 1
+            #logdet_factor = count_pixels(x) # H * W
             dlogdet = torch.sum(torch.log(torch.diag(torch.abs(self.s)))) * logdet_factor
             #TODO: Inverses here might be causing large gradients during backprop
             weight = torch.matmul((self.weight_U + self.s).inverse().float(), \
@@ -515,7 +521,7 @@ class Split1D(nn.Module):
         """
         if self.factor == 1:
             return x, logdet
-        elif factor >= 1:
+        elif self.factor >= 1:
             z1, z2 = split_channel(x, 'simple')
             mean, log_s = self.prior(z1)
             logdet = GaussianDiag.logp(mean, log_s, z2) + logdet
@@ -536,7 +542,7 @@ class Split1D(nn.Module):
         """
         if self.factor == 1:
             return x, logdet
-        elif factor >= 1:
+        elif self.factor >= 1:
             z1 = copy.deepcopy(x)
             mean, log_s = self.prior(z1)
             z2 = GaussianDiag.sample(mean, log_s, eps_std)
