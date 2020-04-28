@@ -172,7 +172,7 @@ class Conv1d(nn.Conv1d):
         return tuple(0 for _ in kernel_size)
 
     def __init__(self, in_channels, out_channels,
-                 kernel_size=(3), stride=1, padding_type='SAME',
+                 kernel_size=(1), stride=1, padding_type='SAME',
                  do_weightnorm=False, do_actnorm=True,
                  dilation=1, groups=1):
         """
@@ -217,7 +217,7 @@ class Conv1d(nn.Conv1d):
 class Conv1dZeros(nn.Conv1d):
 
     def __init__(self, in_channels, out_channels,
-                 kernel_size=3, stride=1, padding_type='SAME',
+                 kernel_size=1, stride=1, padding_type='SAME',
                  logscale_factor=3,
                  dilation=1, groups=1, bias=True):
         """
@@ -428,7 +428,8 @@ class GaussianDiag:
         #assert len(tensor.shape) == 4
         #return ops.reduce_sum(tensor, dim=[1, 2, 3])
         assert len(tensor.shape) == 3
-        return reduce_sum(tensor, dim=[1, 2])
+        #return reduce_sum(tensor, dim=[1, 2])
+        return reduce_sum(tensor, dim=[1])
 
     @staticmethod
     def logps(mean, logs, x):

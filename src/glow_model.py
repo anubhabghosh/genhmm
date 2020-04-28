@@ -396,7 +396,7 @@ def main():
     optimizer = torch.optim.Adam([p for p in flow.parameters() if p.requires_grad == True], lr=1e-4)
     
     N_iter = 4000
-    savedir = "./NormFlowModel/GLOW_Model/figures_aliter_nsamples_LU" + str(n_input_samples) + "/"
+    savedir = "./NormFlowModel/GLOW_Model/figures2_nsamples_LU" + str(n_input_samples) + "/"
     # Training the model
     start_time = datetime.now()
 
