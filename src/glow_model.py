@@ -431,8 +431,8 @@ def main():
 
             #### Plotting the results every 1000 iterations ####
 
-            if (t+1) % 1000 == 0:
-                plot_results(flow, X.detach().numpy(), t+1, savedir)
+            #if (t+1) % 1000 == 0:
+            #    plot_results(flow, X.detach().numpy(), t+1, savedir)
 
     return None
 

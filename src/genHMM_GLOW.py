@@ -9,6 +9,7 @@ from torch import nn, distributions
 from gm_hmm.src._torch_hmmc import _compute_log_xi_sum, _forward, _backward
 from gm_hmm.src.utils import step_learning_rate_decay
 from hmmlearn.base import ConvergenceMonitor
+from timeit import default_timer as timer
 
 class ConvgMonitor(ConvergenceMonitor):
     def report(self, logprob):
@@ -648,7 +649,7 @@ class GenHMM(torch.nn.Module):
         # Reset the convergence monitor
         if int(self.iepoch) == 1:
             self.monitor_._reset()
-            
+
         # Assigning the adapative learning rate to the trainable params of the optimizer
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = ada_lr
@@ -658,6 +659,9 @@ class GenHMM(torch.nn.Module):
         
         # total number of sequences
         n_sequences = len(traindata.dataset)
+
+        # Measure epoch time
++       starttime = timer()
 
         ####################################################################################
         # Training process begins here
@@ -746,6 +750,12 @@ class GenHMM(torch.nn.Module):
 
         # This is the training NLL that is printed out once a given epoch of training is completed for a particular class
         print("epoch:{}\tclass:{}\tLatest NLL:\t{}".format(self.iepoch,self.iclass,self.latestNLL),file=sys.stdout)
+
+        # Epoch time measurement ends here
++        endtime = timer()
+ 
++        # Measure wallclock time
++        print("Time elapsed measured in seconds:{}".format(endtime - starttime))
 
         # Inserting convergence check here
         self.monitor_.report(self.latestNLL)
