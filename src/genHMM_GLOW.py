@@ -752,10 +752,10 @@ class GenHMM(torch.nn.Module):
         print("epoch:{}\tclass:{}\tLatest NLL:\t{}".format(self.iepoch,self.iclass,self.latestNLL),file=sys.stdout)
 
         # Epoch time measurement ends here
-+        endtime = timer()
++       endtime = timer()
  
-+        # Measure wallclock time
-+        print("Time elapsed measured in seconds:{}".format(endtime - starttime))
++       # Measure wallclock time
++       print("Time elapsed measured in seconds:{}".format(endtime - starttime))
 
         # Inserting convergence check here
         self.monitor_.report(self.latestNLL)
