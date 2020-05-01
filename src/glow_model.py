@@ -348,6 +348,7 @@ def NN(in_channels, hidden_channels, out_channels):
         nn.LeakyReLU(inplace=True),
         Conv1d(hidden_channels, hidden_channels),
         nn.LeakyReLU(inplace=True),
+        #nn.Dropout(p=0.10),
         Conv1dZeros(hidden_channels, out_channels)
     )
     """
@@ -373,19 +374,19 @@ def main():
         X = X.unsqueeze(dim=1).permute(0, 2, 1) # Insert the dimensionality for the n_samples and permute dims to make Nb x Nc x Ns
     # Dimension of channel : input and hidden
     in_shape = X.size()
-    n_IC = 2
+    n_IC = 40
     if in_shape[1] != n_IC:
         X = X.permute(0,2,1)
     else:
         pass
-    n_HC = 128
-    K = 4 # Depth of Flow
-    L = 2 # No. of Layers in Multi-Scale architecture
+    n_HC = 40
+    K = 3 # Depth of Flow
+    L = 1 # No. of Layers in Multi-Scale architecture
     actnorm_flag = True
     p_drop=0.0 # Dropout Rate
     prior = distributions.MultivariateNormal(torch.zeros(n_IC), torch.eye(n_IC))
     flow = FlowModel_GLOW(n_IC, n_HC, K, L, prior, permutation='invconv',\
-                          coupling='affine', actnorm_scale=1., lu_decomposition=True,\
+                          coupling='affine', actnorm_scale=1., lu_decomposition=False,\
                           sq_factor=1, actnorm_flag=actnorm_flag, p_drop=p_drop)
 
     # Display the number of parameters to be trained
@@ -396,7 +397,7 @@ def main():
     optimizer = torch.optim.Adam([p for p in flow.parameters() if p.requires_grad == True], lr=1e-4)
     
     N_iter = 4000
-    savedir = "./NormFlowModel/GLOW_Model/figures2_nsamples_LU" + str(n_input_samples) + "/"
+    savedir = "./NormFlowModel/GLOW_Model/figures4_nsamples_LU" + str(n_input_samples) + "/"
     # Training the model
     start_time = datetime.now()
 
@@ -417,7 +418,7 @@ def main():
             #NOTE: Cheap fix for possible large gradients in LU_decomposition of invertible 1 x 1 convolutions 
             # with a factor of 4 just used heuristically.
 
-            nn.utils.clip_grad_norm_(flow.parameters(), 4)
+            #nn.utils.clip_grad_norm_(flow.parameters(), 4)
 
             # Updates the learnale params
             optimizer.step()

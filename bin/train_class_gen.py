@@ -3,7 +3,7 @@ import sys
 from parse import parse
 import pickle as pkl
 #from gm_hmm.src.genHMM import GenHMM, save_model, load_model
-from gm_hmm.src.genHMM_GLOW import GenHMM, save_model, load_model
+from gm_hmm.src.genHMM_GLOW import GenHMM, save_model, load_model, ConvgMonitor
 from gm_hmm.src.utils import pad_data, TheDataset, get_freer_gpu
 import torch
 from torch.utils.data import DataLoader
@@ -28,6 +28,7 @@ if __name__ == "__main__":
         param_file = "default.json"
 
     network_type = "GLOW_Net"
+    #network_type = "Net"
 
     epoch_str, iclass_str = parse('epoch{}_class{}.mdlc',os.path.basename(out_mdl))
     train_class_inputfile = train_inputfile.replace(".pkl", "_{}.pkl".format(iclass_str))
@@ -51,10 +52,17 @@ if __name__ == "__main__":
                                          options["Train"]["n_states_min"],
                                          options["Train"]["n_states_max"])
 
+    # Convergence monitoring parameters
+    tol = 1e-2 # Convg. Monitor tolerance
+    verbose = True # Verbose flag is True
+
     #  Load or create model
     if epoch_str == '1':
     #    mdl = GenHMM(**options["Net"])
-         mdl = GenHMM(**options[network_type])
+        mdl = GenHMM(**options[network_type])
+
+        # Inserting variable convergence control
+        mdl.monitor = ConvgMonitor(tol, mdl.n_iter, verbose)
 
     else:
         # Load previous model
@@ -102,7 +110,12 @@ if __name__ == "__main__":
     # set model into train mode
     mdl.train()
     for iiter in range(niter):
-        mdl.fit(traindata)
+        #mdl.fit(traindata)
+        flag = mdl.fit(traindata)
+        if flag:
+            break
+        else:
+            continue
 
     # Push back to cpu for compatibility when GPU unavailable.
     mdl.pushto('cpu')

@@ -8,6 +8,35 @@ import torch
 from torch import nn, distributions
 from gm_hmm.src._torch_hmmc import _compute_log_xi_sum, _forward, _backward
 from gm_hmm.src.utils import step_learning_rate_decay
+from hmmlearn.base import ConvergenceMonitor
+
+class ConvgMonitor(ConvergenceMonitor):
+    def report(self, logprob):
+        """
+        Reports the convergence to the :data:'sys.stderr'
+        (which is the log file for class training hopefully)
+
+        The output consists of three columns:
+        - Iteration Number, negative logprobability of the data at the 
+        current iteration and convergence rate (delta). At first iteration,
+        the convergence rate is unknown and is thus denoted by NaN.
+
+        ----
+        Args:
+
+        - logprob: (float) The logprob of the data as computed by the EM algorithm
+        in the current iteration
+        """
+
+        if self.verbose:
+            delta = logprob -  self.history[-1] if self.history else np.nan
+            message = self._template.format(iter=self.iter + 1,
+                                            logprob=logprob,
+                                            delta=delta)
+            print(message, file=sys.stdout)
+        
+        self.history.append(logprob) # History contains logprob of the data for last 2 iterations
+        self.iter += 1 # increments the number of iterations
 
 class GenHMMclassifier(nn.Module):
     """
@@ -616,7 +645,10 @@ class GenHMM(torch.nn.Module):
                                           global_step=self.global_step,
                                           minimum=1e-4,
                                           anneal_rate=0.98)
-        
+        # Reset the convergence monitor
+        if int(self.iepoch) == 1:
+            self.monitor_._reset()
+            
         # Assigning the adapative learning rate to the trainable params of the optimizer
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = ada_lr
@@ -715,10 +747,19 @@ class GenHMM(torch.nn.Module):
         # This is the training NLL that is printed out once a given epoch of training is completed for a particular class
         print("epoch:{}\tclass:{}\tLatest NLL:\t{}".format(self.iepoch,self.iclass,self.latestNLL),file=sys.stdout)
 
+        # Inserting convergence check here
+        self.monitor_.report(self.latestNLL)
+
         # Flag back to False
         self.update_HMM = False
         # set global_step
         self.global_step += 1
+
+        # Break off if model has converged which is set by the convergence flag
+        if self.monitor_.converged == True:
+            return True
+        else:
+            return False
 
 # Wrapper for UserData mdl (probably)
 class wrapper(torch.nn.Module):
