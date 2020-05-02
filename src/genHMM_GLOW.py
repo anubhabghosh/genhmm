@@ -31,13 +31,22 @@ class ConvgMonitor(ConvergenceMonitor):
 
         if self.verbose:
             delta = logprob -  self.history[-1] if self.history else np.nan
+            if self.history:
+                delta = torch.abs(delta)
+            self.delta = delta
             message = self._template.format(iter=self.iter + 1,
                                             logprob=logprob,
-                                            delta=delta)
+                                            delta=self.delta)
             print(message, file=sys.stdout)
+            print("Convergence threshold:{}".format(self.tol))
         
         self.history.append(logprob) # History contains logprob of the data for last 2 iterations
         self.iter += 1 # increments the number of iterations
+
+    @property
+    def converged(self):
+        if len(self.history) == 2:
+            return self.delta <= self.tol
 
 class GenHMMclassifier(nn.Module):
     """
@@ -647,8 +656,8 @@ class GenHMM(torch.nn.Module):
                                           minimum=1e-4,
                                           anneal_rate=0.98)
         # Reset the convergence monitor
-        if int(self.iepoch) == 1:
-            self.monitor_._reset()
+        #if int(self.iepoch) == 1:
+        #    self.monitor_._reset()
 
         # Assigning the adapative learning rate to the trainable params of the optimizer
         for param_group in self.optimizer.param_groups:
@@ -661,7 +670,7 @@ class GenHMM(torch.nn.Module):
         n_sequences = len(traindata.dataset)
 
         # Measure epoch time
-+       starttime = timer()
+        starttime = timer()
 
         ####################################################################################
         # Training process begins here
@@ -752,10 +761,10 @@ class GenHMM(torch.nn.Module):
         print("epoch:{}\tclass:{}\tLatest NLL:\t{}".format(self.iepoch,self.iclass,self.latestNLL),file=sys.stdout)
 
         # Epoch time measurement ends here
-+       endtime = timer()
+        endtime = timer()
  
-+       # Measure wallclock time
-+       print("Time elapsed measured in seconds:{}".format(endtime - starttime))
+        # Measure wallclock time
+        print("Time elapsed measured in seconds:{}".format(endtime - starttime))
 
         # Inserting convergence check here
         self.monitor_.report(self.latestNLL)
@@ -767,6 +776,7 @@ class GenHMM(torch.nn.Module):
 
         # Break off if model has converged which is set by the convergence flag
         if self.monitor_.converged == True:
+            print("Convergence attained!!")
             return True
         else:
             return False

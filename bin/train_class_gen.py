@@ -53,16 +53,19 @@ if __name__ == "__main__":
                                          options["Train"]["n_states_max"])
 
     # Convergence monitoring parameters
-    tol = 1e-2 # Convg. Monitor tolerance
+    tol = 1e-1 # Convg. Monitor tolerance
     verbose = True # Verbose flag is True
-
+    
+    # niter counts the number of em steps before saving a model checkpoint
+    niter = options["Train"]["niter"]
+    
     #  Load or create model
     if epoch_str == '1':
     #    mdl = GenHMM(**options["Net"])
         mdl = GenHMM(**options[network_type])
 
         # Inserting variable convergence control
-        mdl.monitor = ConvgMonitor(tol, mdl.n_iter, verbose)
+        mdl.monitor_ = ConvgMonitor(tol, niter, verbose)
 
     else:
         # Load previous model
@@ -102,15 +105,21 @@ if __name__ == "__main__":
     traindata = DataLoader(dataset=TheDataset(xtrain_padded, lengths=l, device=mdl.device), batch_size=options["Train"]["batch_size"], shuffle=True)
 
     # niter counts the number of em steps before saving a model checkpoint
-    niter = options["Train"]["niter"]
+    # niter = options["Train"]["niter"]
     
     # add number of training data in model
     mdl.number_training_data = len(xtrain)
     
     # set model into train mode
     mdl.train()
+
+    # Reset the convergence monitor
+    if int(mdl.iepoch) == 1:
+        mdl.monitor_._reset()
+
     for iiter in range(niter):
         #mdl.fit(traindata)
+        mdl.iter = iiter
         flag = mdl.fit(traindata)
         if flag:
             break
