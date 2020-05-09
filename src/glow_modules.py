@@ -265,7 +265,7 @@ class Invertible1x1Conv(nn.Module):
         self.num_channels = num_channels
         self.lu_decomposition = lu_decomposition
         w_shape = [num_channels, num_channels]
-        tolerance = 1e-6
+        tolerance = 1e-4
         # Sample a random orthogonal matrix
         w_init = np.linalg.qr(np.random.randn(*w_shape))[0].astype('float32')
         if self.lu_decomposition:
@@ -273,6 +273,7 @@ class Invertible1x1Conv(nn.Module):
             p, w_l , w_u = torch.lu_unpack(w_LU_pts, pivots)
             s = torch.diag(torch.diag(w_u))
             w_u -= s
+            print((torch.Tensor(w_init) - torch.matmul(p, torch.matmul(w_l, (w_u + s)))).abs().sum())
             assert (torch.Tensor(w_init) - torch.matmul(p, torch.matmul(w_l, (w_u + s)))).abs().sum() < tolerance
             self.register_parameter('weight_L', nn.Parameter(torch.Tensor(w_l)))
             self.register_parameter('weight_U', nn.Parameter(torch.Tensor(w_u)))

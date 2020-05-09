@@ -17,6 +17,10 @@ if __name__ == "__main__":
         print(usage)
         sys.exit(1)
 
+    # Set random seeds for reproducibility
+    # np.random.seed(2)
+    # torch.manual_seed(2)
+    
     # Parse
     train_inputfile = sys.argv[1]
     out_mdl = sys.argv[2]
@@ -53,7 +57,7 @@ if __name__ == "__main__":
                                          options["Train"]["n_states_max"])
 
     # Convergence monitoring parameters
-    tol = 1e-1 # Convg. Monitor tolerance
+    tol = 2e-2 # Convg. Monitor tolerance
     verbose = True # Verbose flag is True
     
     # niter counts the number of em steps before saving a model checkpoint
@@ -116,13 +120,27 @@ if __name__ == "__main__":
     # Reset the convergence monitor
     if int(mdl.iepoch) == 1:
         mdl.monitor_._reset()
+    
+    #convg_count = 0
+    ncon_int = 3 # No. of consecutive iterations to be checked
+    iter_arr = [] # Empty list to store iteration numbers to check for consecutive iterations
 
     for iiter in range(niter):
         #mdl.fit(traindata)
         mdl.iter = iiter
         flag = mdl.fit(traindata)
-        if flag:
-            break
+#        if flag and iiter > (niter // 2):
+        if flag: # If convergence is satisfied
+            #convg_count += 1
+            #if convg_count > 0:
+                #print("Exit loop")
+                #break
+            iter_arr.append(iiter)
+            if len(iter_arr) == ncon_int and iter_arr == list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
+                print("Exit loop after {} consecutive iterations having relative change in NLL below tolerance of {}".format(ncon_int, tol))
+                break
+            elif len(iter_arr) == ncon_int and iter_arr != list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
+                iter_arr = [] # Reset the buffer
         else:
             continue
 

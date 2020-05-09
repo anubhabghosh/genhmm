@@ -33,7 +33,11 @@ class ConvgMonitor(ConvergenceMonitor):
             delta = logprob -  self.history[-1] if self.history else np.nan
             if self.history:
                 delta = torch.abs(delta)
+                delta_rel = delta / torch.abs(self.history[-1])
+            else:
+                delta_rel = np.nan
             self.delta = delta
+            self.delta_rel = delta_rel
             message = self._template.format(iter=self.iter + 1,
                                             logprob=logprob,
                                             delta=self.delta)
@@ -46,7 +50,8 @@ class ConvgMonitor(ConvergenceMonitor):
     @property
     def converged(self):
         if len(self.history) == 2:
-            return self.delta <= self.tol
+            return self.delta_rel <= self.tol
+            #return self.delta <= self.tol
 
 class GenHMMclassifier(nn.Module):
     """
