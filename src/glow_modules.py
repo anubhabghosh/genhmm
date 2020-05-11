@@ -71,7 +71,7 @@ class ActNorm(nn.Module):
             self.initialise_bias(x)
        
         logs = self.logs * self.logscale_factor
-        z = (x  + self.bias) * torch.exp(logs)
+        z = (x  + self.bias) * torch.exp(logs) 
         if logdet is not None:
 
             #logdet_factor = count_pixels(x)

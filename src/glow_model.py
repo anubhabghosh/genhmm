@@ -33,7 +33,6 @@ class FlowStep(nn.Module):
                  p_drop=0):
         """
         One step of flow described in paper
-
                       ▲
                       │
         ┌─────────────┼─────────────┐
@@ -53,7 +52,6 @@ class FlowStep(nn.Module):
         └─────────────┼─────────────┘
                       │
                       │
-
         :param in_channels: number of input channels
         :type in_channels: int
         :param hidden_channels: number of hidden channels
@@ -101,12 +99,11 @@ class FlowStep(nn.Module):
         Args:
         - x: Input Tensor (that is usually the data vector) (Nb x Nc x Ns)
         - logdet: Variable that is going to store the logarithm of the determinant
-
         Returns:
         - z: Output tensor that is the mapped verison in the latent space
         - logdet : Logarithm of the determinant after traversing through the entire layer
         """
-        #z = copy.deepcopy(x)
+        # z = x.data.clone()
         # Activation normalization layer
         z, logdet = self.actnorm.forward(x, logdet=logdet)
 
@@ -145,7 +142,6 @@ class FlowStep(nn.Module):
         Args:
         - z: Input Tensor (that is usually the vector from the latent space) (Nb x Nc x Ns)
         - logdet: Variable that is going to store the logarithm of the determinant
-
         Returns:
         - x: Output tensor that is the mapped verison in the latent space
         - logdet : Logarithm of the determinant after traversing through the entire layer
@@ -183,7 +179,6 @@ class FlowStep(nn.Module):
     def forward(self, x, logdet=None):
         """
         Forward one step of flow
-
         :param x: input tensor
         :type x: torch.Tensor
         :param logdet: log determinant
@@ -198,12 +193,10 @@ class FlowStep(nn.Module):
     def reverse(self, z, logdet=None):
         """
         Reverse one step of flow
-
         :param z: input tensor
         :type z: torch.Tensor
         :param logdet: log determinant
         :type logdet: torch.Tensor
-
         :return: output and logdet
         :rtype: tuple(torch.Tensor, torch.Tensor)
         """
@@ -285,14 +278,18 @@ class FlowModel_GLOW(nn.Module):
         This function is supposed to compute the log-likelihood using the logdet and the calculated prior
         """
         # Ensure that the input has proper dimensions (channel-wise)
-        if x.shape[1] != in_channels:
-            x = x.permute(0,2,1)
-        else:
-            pass
+        #if x.shape[1] != in_channels:
+        #    x = x.permute(0,2,1)
+        #else:
+        #    pass
+        # Previously: x is (batchsize, samples, channels/components) 
+        # later after permutation, we want to make it (batchsize, channels, samples)
+        x = x.permute(0, 2, 1) # Since channel wise processing occurs across dim=1
         z, logp = self.f(x)
         #return self.prior.log_prob(z) + logp
-        if z.shape[1] == in_channels:
-            z = z.permute(0,2,1)
+        #if z.shape[1] == in_channels:
+        #    z = z.permute(0,2,1)
+        z = z.permute(0, 2, 1) # To get the proper ordering before applying masks
         #px = self.prior.log_prob(z) + logp.view(logp.shape[0], 1)
         px = self.prior.log_prob(z) + logp
         if type(x_mask) == type(None): # x_mask decides if there are appended zeros for the samples which are not to be processed
@@ -320,10 +317,8 @@ class FlowModel_GLOW(nn.Module):
 def count_params(model):
     """
     Counts two types of parameters:
-
     - Total no. of parameters in the model (including trainable parameters)
     - Number of trainable parameters (i.e. parameters whose gradients will be computed)
-
     """
     total_num_params = sum(p.numel() for p in model.parameters())
     total_num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad == True)
@@ -332,7 +327,6 @@ def count_params(model):
 def NN(in_channels, hidden_channels, out_channels):
     """
     Convolution block
-
     :param in_channels: number of input channels
     :type in_channels: int
     :param hidden_channels: number of hidden channels
@@ -374,12 +368,12 @@ def main():
         X = X.unsqueeze(dim=1).permute(0, 2, 1) # Insert the dimensionality for the n_samples and permute dims to make Nb x Nc x Ns
     # Dimension of channel : input and hidden
     in_shape = X.size()
-    n_IC = 40
+    n_IC = 2
     if in_shape[1] != n_IC:
         X = X.permute(0,2,1)
     else:
         pass
-    n_HC = 40
+    n_HC = 128
     K = 3 # Depth of Flow
     L = 1 # No. of Layers in Multi-Scale architecture
     actnorm_flag = True
@@ -397,7 +391,7 @@ def main():
     optimizer = torch.optim.Adam([p for p in flow.parameters() if p.requires_grad == True], lr=1e-4)
     
     N_iter = 4000
-    savedir = "./NormFlowModel/GLOW_Model/figures4_nsamples_LU" + str(n_input_samples) + "/"
+    savedir = "./NormFlowModel/GLOW_Model/figures6_nsamples_LU" + str(n_input_samples) + "/"
     # Training the model
     start_time = datetime.now()
 
@@ -431,8 +425,8 @@ def main():
 
             #### Plotting the results every 1000 iterations ####
 
-            #if (t+1) % 1000 == 0:
-            #    plot_results(flow, X.detach().numpy(), t+1, savedir)
+            if (t+1) % 1000 == 0:
+                plot_results(flow, X.detach().numpy(), t+1, savedir)
 
     return None
 

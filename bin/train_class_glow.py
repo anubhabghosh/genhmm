@@ -2,8 +2,8 @@ import os
 import sys
 from parse import parse
 import pickle as pkl
-from gm_hmm.src.genHMM import GenHMM, save_model, load_model
-#from gm_hmm.src.genHMM_GLOW import GenHMM, save_model, load_model, ConvgMonitor
+#from gm_hmm.src.genHMM import GenHMM, save_model, load_model
+from gm_hmm.src.genHMM_GLOW import GenHMM, save_model, load_model, ConvgMonitor
 from gm_hmm.src.utils import pad_data, TheDataset, get_freer_gpu
 import torch
 from torch.utils.data import DataLoader
@@ -31,8 +31,8 @@ if __name__ == "__main__":
     except IndexError:
         param_file = "default.json"
 
-    #network_type = "GLOW_Net"
-    network_type = "Net"
+    network_type = "GLOW_Net"
+    #network_type = "Net"
 
     epoch_str, iclass_str = parse('epoch{}_class{}.mdlc',os.path.basename(out_mdl))
     train_class_inputfile = train_inputfile.replace(".pkl", "_{}.pkl".format(iclass_str))
@@ -64,7 +64,6 @@ if __name__ == "__main__":
     # niter counts the number of em steps before saving a model checkpoint
     niter = options["Train"]["niter"]
 
-    '''
     # NOTE: Poor fix for <sil> class and some other problematic classes 
     if iclass_str == '39':
         tol = 3e-2
@@ -72,7 +71,6 @@ if __name__ == "__main__":
     elif iclass_str == '6' or iclass_str == '16' or iclass_str == '26' or iclass_str == '30' or iclass_str == '38':
         tol = 2.5e-2
         ncon_int = 3
-    '''
     # niter counts the number of em steps before saving a model checkpoint
     niter = options["Train"]["niter"]
     
@@ -82,7 +80,7 @@ if __name__ == "__main__":
         mdl = GenHMM(**options[network_type])
 
         # Inserting variable convergence control
-        # mdl.monitor_ = ConvgMonitor(tol, niter, verbose)
+        mdl.monitor_ = ConvgMonitor(tol, niter, verbose)
 
     else:
         # Load previous model
@@ -131,31 +129,31 @@ if __name__ == "__main__":
     mdl.train()
 
     # Reset the convergence monitor
-    #if int(mdl.iepoch) == 1:
-    #    mdl.monitor_._reset()
+    if int(mdl.iepoch) == 1:
+        mdl.monitor_._reset()
     
     #convg_count = 0
     #ncon_int = 3 # No. of consecutive iterations to be checked
-    #iter_arr = [] # Empty list to store iteration numbers to check for consecutive iterations
+    iter_arr = [] # Empty list to store iteration numbers to check for consecutive iterations
 
     for iiter in range(niter):
-        mdl.fit(traindata)
-        #mdl.iter = iiter
-        #flag = mdl.fit(traindata)
+        #mdl.fit(traindata)
+        mdl.iter = iiter
+        flag = mdl.fit(traindata)
 #        if flag and iiter > (niter // 2):
-        #if flag: # If convergence is satisfied
+        if flag: # If convergence is satisfied
             #convg_count += 1
             #if convg_count > 0:
                 #print("Exit loop")
                 #break
-        #    iter_arr.append(iiter)
-        #    if len(iter_arr) == ncon_int and iter_arr == list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
-        #        print("Exit loop after {} consecutive iterations having relative change in NLL below tolerance of {}".format(ncon_int, tol))
-        #        break
-        #    elif len(iter_arr) == ncon_int and iter_arr != list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
-        #        iter_arr = [] # Reset the buffer
-        #else:
-        #    continue
+            iter_arr.append(iiter)
+            if len(iter_arr) == ncon_int and iter_arr == list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
+                print("Exit loop after {} consecutive iterations having relative change in NLL below tolerance of {}".format(ncon_int, tol))
+                break
+            elif len(iter_arr) == ncon_int and iter_arr != list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
+                iter_arr = [] # Reset the buffer
+        else:
+            continue
 
     # Push back to cpu for compatibility when GPU unavailable.
     mdl.pushto('cpu')
