@@ -11,6 +11,7 @@ import torch
 from torch.utils.data import DataLoader 
 import matplotlib.pyplot as plt
 from scipy.io import savemat
+import json
 
 def print_results(mdl_file, data_files, results):
     epoch = parse("epoch{}.mdl", os.path.basename(mdl_file))[0]
@@ -93,7 +94,7 @@ if __name__ == "__main__":
         class_hat = torch.argmax(out, dim=0) + 1
 
         istrue = class_hat == int(true_class)
-        print(data_file, "Done ...", "{}/{}".format(str(istrue.sum()), str(istrue.shape[0])))
+        print(data_file, "Done ...", "{}/{}".format(str(istrue.sum().cpu().numpy()), str(istrue.shape[0])))
 
         nclasses_arr = [int(c+1) for c in range(nclasses)]
         for c in nclasses_arr:
@@ -117,9 +118,9 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots()
     plt.title(" Confusion Matrix for classification of {}/{} classes".format(nclasses, totclasses))
-    cf = ax.imshow(A, aspect='auto', cmap='jet')
-    ax.set_xticks([x1 for x1 in range(A.shape[1])])
-    ax.set_yticks([x1 for x1 in range(A.shape[1])])
+    cf = ax.imshow(cf_matrix, aspect='auto', cmap='jet')
+    ax.set_xticks([x1 for x1 in range(cf_matrix.shape[1])])
+    ax.set_yticks([x1 for x1 in range(cf_matrix.shape[1])])
     ax.set_yticklabels(y_labels)
     ax.set_xticklabels(x_labels)
     fig.colorbar(cf, ax=ax)
