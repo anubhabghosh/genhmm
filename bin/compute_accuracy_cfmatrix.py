@@ -43,6 +43,8 @@ if __name__ == "__main__":
     training_data_file = sys.argv[2]
     testing_data_file = sys.argv[3]
 
+    normalize = True # set row-wise normalizing flag to be true
+
     # Load Model
     mdl = load_model(mdl_file)
 
@@ -103,6 +105,9 @@ if __name__ == "__main__":
             istrue_c = class_hat == c
             cf_matrix[int(true_class) - 1, c-1] = istrue_c.sum()
         
+        if normalize == True: # "True" Row-wise normalization
+            cf_matrix = cf_matrix / cf_matrix.sum(axis=1, keepdims=True)
+
         print("Confusion Matrix for Class :{} is {} ".format(true_class, cf_matrix))
     # Plotting the confusion matrix
 
@@ -120,7 +125,7 @@ if __name__ == "__main__":
     y_labels = [classmap[str(y1)] for y1 in range(cf_matrix.shape[0])]
 
     fig, ax = plt.subplots()
-    plt.title(" Confusion Matrix for classification of {}/{} classes".format(nclasses, totclasses))
+    plt.title(" Confusion Matrix for classification of {}/{} classes (Row:True class, Col:Pred class)".format(nclasses, totclasses))
     cf = ax.imshow(cf_matrix, aspect='auto', cmap='jet')
     ax.set_xticks([x1 for x1 in range(cf_matrix.shape[1])])
     ax.set_yticks([x1 for x1 in range(cf_matrix.shape[1])])
@@ -128,6 +133,6 @@ if __name__ == "__main__":
     ax.set_xticklabels(x_labels)
     fig.colorbar(cf, ax=ax)
     #plt.show()
-    plt.savefig("./models/" + "cfmatrix.pdf")
+    plt.savefig("./models/" + "cfmatrix_truenorm.pdf")
     plt.close()
     sys.exit(0)
