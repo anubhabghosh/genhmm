@@ -92,15 +92,18 @@ if __name__ == "__main__":
 
         # the out here should be the shape: data_size * nclasses
         class_hat = torch.argmax(out, dim=0) + 1
+        #print("The predicted set is:{}".format(class_hat))
 
         istrue = class_hat == int(true_class)
         print(data_file, "Done ...", "{}/{}".format(str(istrue.sum().cpu().numpy()), str(istrue.shape[0])))
 
         nclasses_arr = [int(c+1) for c in range(nclasses)]
+        #print("The classes are :{}".format(nclasses_arr))
         for c in nclasses_arr:
             istrue_c = class_hat == c
-            cf_matrix[int(true_class) - 1, c-1] = istrue.sum()
+            cf_matrix[int(true_class) - 1, c-1] = istrue_c.sum()
         
+        print("Confusion Matrix for Class :{} is {} ".format(true_class, cf_matrix))
     # Plotting the confusion matrix
 
     classmap_file = "./data/class_map.json"
