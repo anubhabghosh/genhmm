@@ -3,10 +3,10 @@ import sys
 import os
 from functools import partial
 import pickle as pkl
-from gm_hmm.src.genHMM_GLOW import GenHMMclassifier
+from gm_hmm.src.genHMM_GLOW import GenHMMclassifier, load_model
 import numpy as np
 from parse import parse
-from gm_hmm.src.utils import divide, acc_str, append_class, parse_, accuracy_fun
+from gm_hmm.src.utils import divide, acc_str, append_class, parse_, accuracy_fun, pad_data, TheDataset
 import torch
 from torch.utils.data import DataLoader 
 import matplotlib.pyplot as plt
@@ -43,22 +43,21 @@ if __name__ == "__main__":
     testing_data_file = sys.argv[3]
 
     # Load Model
-    with open(mdl_file, "rb") as handle:
-        mdl = pkl.load(handle)
+    mdl = load_model(mdl_file)
 
     # Prepare for computation of results
-    nclasses = 5
+    nclasses = len(mdl.hmms)
     totclasses = 39 # Initialise total number of classes
     cf_matrix = np.zeros((nclasses, nclasses))
     batch_size_=128
-    
+
     # Builds an array of string containing the train and test data sets for each class
     # size: nclass x 2 (train, test)
     #data_files = np.array([[append_class(training_data_file, iclass+1), append_class(testing_data_file, iclass+1)]
     #               for iclass in range(nclasses)])
-    tr_data_files = np.array([[append_class(training_data_file, iclass+1)]
+    tr_data_files = np.array([append_class(training_data_file, iclass+1)
                    for iclass in range(nclasses)])
-    te_data_files = np.array([[append_class(testing_data_file, iclass+1)]
+    te_data_files = np.array([append_class(testing_data_file, iclass+1)
                    for iclass in range(nclasses)])
 
     # Define a function for this particular HMMclassifier model
@@ -74,7 +73,7 @@ if __name__ == "__main__":
         try:
             X = pkl.load(open(data_file, "rb"))
         except:
-            return "0/1"
+            print("File not found")
         
         # Get the length of all the sequences
         l = [xx.shape[0] for xx in X]
