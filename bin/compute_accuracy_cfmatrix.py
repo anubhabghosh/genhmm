@@ -47,10 +47,11 @@ if __name__ == "__main__":
         mdl = pkl.load(handle)
 
     # Prepare for computation of results
-    nclasses = len(mdl.hmms)
+    nclasses = 5
     totclasses = 39 # Initialise total number of classes
     cf_matrix = np.zeros((nclasses, nclasses))
-
+    batch_size_=128
+    
     # Builds an array of string containing the train and test data sets for each class
     # size: nclass x 2 (train, test)
     #data_files = np.array([[append_class(training_data_file, iclass+1), append_class(testing_data_file, iclass+1)]
@@ -74,16 +75,24 @@ if __name__ == "__main__":
             X = pkl.load(open(data_file, "rb"))
         except:
             return "0/1"
+        
         # Get the length of all the sequences
         l = [xx.shape[0] for xx in X]
         # zero pad data for batch training
+        max_len_ = max([xx.shape[0] for xx in X])
+        x_padded = pad_data(X, max_len_)
+        batchdata = DataLoader(dataset=TheDataset(x_padded,
+                                                  lengths=l,
+                                                  device=mdl.hmms[0].device),
+                                                  batch_size=batch_size_, shuffle=True)
 
         true_class = parse("{}_{}.pkl", os.path.basename(data_file))[1]
-        out_list = [mdl.forward(x_i[:,1:]) for x_i in X]
-        out = np.array(out_list).transpose()
+        out_list = [mdl.forward(x) for x in batchdata]
+        out = torch.cat(out_list, dim=1)
 
         # the out here should be the shape: data_size * nclasses
-        class_hat = np.argmax(out, axis=0) + 1
+        class_hat = torch.argmax(out, dim=0) + 1
+
         istrue = class_hat == int(true_class)
         print(data_file, "Done ...", "{}/{}".format(str(istrue.sum()), str(istrue.shape[0])))
 
