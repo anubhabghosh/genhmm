@@ -101,7 +101,7 @@ class ActNorm(nn.Module):
         if logdet is not None:
 
             logdet_factor = 1
-            # logdet_factor = count_pixels(z)
+            #logdet_factor = count_pixels(z)
             dlogdet = -1 * logdet_factor * torch.sum(logs)
             logdet += dlogdet
 
@@ -301,7 +301,8 @@ class Invertible1x1Conv(nn.Module):
         if not self.lu_decomposition:
             logdet_factor = 1
             #logdet_factor = count_pixels(z)  # H * W
-            dlogdet = torch.log(torch.abs(torch.det(self.weight))) * logdet_factor
+            #dlogdet = torch.log(torch.abs(torch.det(self.weight))) * logdet_factor
+            dlogdet = torch.slogdet(self.weight)[1] * logdet_factor
             weight = self.weight.view(*self.weight.shape, 1)
             x = F.conv1d(z, weight)
             if logdet is not None:
@@ -337,7 +338,8 @@ class Invertible1x1Conv(nn.Module):
         if not self.lu_decomposition:
             logdet_factor = 1
             #logdet_factor = count_pixels(x)  # H * W
-            dlogdet = torch.log(torch.abs(torch.det(self.weight))) * logdet_factor
+            #dlogdet = torch.log(torch.abs(torch.det(self.weight))) * logdet_factor
+            dlogdet = torch.slogdet(self.weight)[1] * logdet_factor
             weight = self.weight.inverse().view(*self.weight.shape, 1)
             z = F.conv1d(x, weight)
             if logdet is not None:
@@ -645,4 +647,4 @@ class Squeeze1D(nn.Module):
         """
         output = self.unsqueeze(z, self.factor) # Returns the output of an Unsqueeze operation
         return output, logdet
-    
+

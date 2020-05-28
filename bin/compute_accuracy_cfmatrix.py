@@ -48,6 +48,20 @@ if __name__ == "__main__":
     # Load Model
     mdl = load_model(mdl_file)
 
+    if torch.cuda.is_available():
+        #if not options["Mul_gpu"]:
+        # default case, only one gpu
+        device = torch.device('cuda')
+        mdl.device = device
+        mdl.pushto(mdl.device)
+    
+    else:
+        mdl.device = 'cpu'
+        mdl.pushto(mdl.device)
+
+    # set model into eval mode
+    mdl.eval()
+    
     # Prepare for computation of results
     nclasses = len(mdl.hmms)
     totclasses = 39 # Initialise total number of classes
@@ -104,11 +118,43 @@ if __name__ == "__main__":
         for c in nclasses_arr:
             istrue_c = class_hat == c
             cf_matrix[int(true_class) - 1, c-1] = istrue_c.sum()
-        
-        if normalize == True: # "True" Row-wise normalization
-            cf_matrix = cf_matrix / cf_matrix.sum(axis=1, keepdims=True)
+    
+    #####################################################################################
+    # Compute Additional helpful metrics
+    ####################################################################################
 
-        print("Confusion Matrix for Class :{} is {} ".format(true_class, cf_matrix))
+    cf_metrics = np.zeros((nclasses, 4))
+    file1 = open("./log/metrics.log", "w+")
+    for i in range(cf_matrix.shape[0]):
+
+        tp_iclass = cf_matrix[i,i]  # Get number of true positives
+        fn_iclass = np.sum(cf_matrix[i,:]) - tp_iclass # Get number of false negatives
+        fp_iclass = np.sum(cf_matrix[:,i]) - tp_iclass # Get number of false positives
+        
+        precision_iclass = tp_iclass / (tp_iclass + fp_iclass) # Get the precision
+        recall_iclass = tp_iclass / (tp_iclass + fn_iclass) # Get the recall
+        acc_iclass = tp_iclass / np.sum(cf_matrix[i,:]) # Get the accuracy
+        if precision_iclass != 0 or recall_iclass != 0:
+            F1_iclass = 2 * precision_iclass * recall_iclass / (precision_iclass + recall_iclass)
+        else:
+            F1_iclass = 0 # In case of undefined values
+        
+        print("Class:{}\tAccuracy:{}\tPrecision:{}\tRecall:{}\tF1_score:{}".format(i+1, acc_iclass, precision_iclass, recall_iclass, F1_iclass)) 
+        file1.write("Class:{}\tAccuracy:{}\tPrecision:{}\tRecall:{}\tF1_score:{}\n".format(i+1, acc_iclass, precision_iclass, recall_iclass, F1_iclass))
+
+    file1.close() 
+
+    if normalize == True: # "True" Row-wise normalization
+        cf_matrix = cf_matrix / cf_matrix.sum(axis=1, keepdims=True)
+
+    #print("Confusion Matrix for Class :{} is {} ".format(true_class, cf_matrix))
+    
+    cf_dict = {}
+    cf_dict['cfmatrix'] = cf_matrix
+    cf_dict['normalize'] = 'true_row_wise'
+    cf_dict['numclasses'] = nclasses
+
+    savemat('./models/confusion_matrix.mat',cf_dict)
     # Plotting the confusion matrix
 
     classmap_file = "./data/class_map.json"
@@ -125,14 +171,16 @@ if __name__ == "__main__":
     y_labels = [classmap[str(y1)] for y1 in range(cf_matrix.shape[0])]
 
     fig, ax = plt.subplots()
-    plt.title(" Confusion Matrix for classification of {}/{} classes (Row:True class, Col:Pred class)".format(nclasses, totclasses))
+    plt.title(" Confusion Matrix for {}/{} classes (Row:True,Col:Pred)".format(nclasses, totclasses))
     cf = ax.imshow(cf_matrix, aspect='auto', cmap='jet')
     ax.set_xticks([x1 for x1 in range(cf_matrix.shape[1])])
     ax.set_yticks([x1 for x1 in range(cf_matrix.shape[1])])
     ax.set_yticklabels(y_labels)
     ax.set_xticklabels(x_labels)
+    ax.set_xlabel('Predicted classes')
+    ax.set_ylabel('True classes')
     fig.colorbar(cf, ax=ax)
     #plt.show()
-    plt.savefig("./models/" + "cfmatrix_truenorm.pdf")
+    plt.savefig("./models/" + "cfmatrix_truenorm_full.pdf")
     plt.close()
     sys.exit(0)

@@ -289,9 +289,11 @@ class FlowModel_GLOW(nn.Module):
         #return self.prior.log_prob(z) + logp
         #if z.shape[1] == in_channels:
         #    z = z.permute(0,2,1)
+        # n_samples = count_pixels(z)
         z = z.permute(0, 2, 1) # To get the proper ordering before applying masks
         #px = self.prior.log_prob(z) + logp.view(logp.shape[0], 1)
         px = self.prior.log_prob(z) + logp
+        #px = px / float(n_samples)
         if type(x_mask) == type(None): # x_mask decides if there are appended zeros for the samples which are not to be processed
             return px
         else:

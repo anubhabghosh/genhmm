@@ -183,6 +183,8 @@ def accuracy_fun_torch(data_file, mdl=None, batch_size_=128):
 
     # the out here should be the shape: data_size * nclasses
     class_hat = torch.argmax(out, dim=0) + 1
+    #print("True class:{}".format(true_class))
+    #print("Predicted classes:{}".format(class_hat))
     print(data_file, "Done ...", "{}".format(acc_str(class_hat, true_class)), file=sys.stderr)
 
     return acc_str(class_hat, true_class)

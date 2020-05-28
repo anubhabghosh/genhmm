@@ -40,7 +40,7 @@ class ConvgMonitor(ConvergenceMonitor):
             self.delta_rel = delta_rel
             message = self._template.format(iter=self.iter + 1,
                                             logprob=logprob,
-                                            delta=self.delta)
+                                            delta=self.delta_rel)
             print(message, file=sys.stdout)
             print("Convergence threshold:{}".format(self.tol))
         
@@ -253,6 +253,7 @@ class GenHMM(torch.nn.Module):
                                         for _ in range(self.n_prob_components*self.n_states)]
         total_num_params, total_num_trainable_params = count_params(self.networks[0])
         print("The total number of params: {} and the number of trainable params:{}".format(total_num_params, total_num_trainable_params))
+        print("No. of Flowsteps:{}, No.of Multiscale layers:{}".format(K, L))
         # Reshape in a n_states x n_prob_components array
         self.networks = np.array(self.networks).reshape(self.n_states, self.n_prob_components)
         
@@ -265,8 +266,12 @@ class GenHMM(torch.nn.Module):
                                         for _ in range(self.n_prob_components*self.n_states)]
         self.old_networks = np.array(self.old_networks).reshape(self.n_states, self.n_prob_components)
         
-        self.optimizer = torch.optim.Adam(
-            sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.networks.reshape(-1).tolist()], []), lr=self.lr)
+        #self.optimizer = torch.optim.Adam(
+        #    sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.networks.reshape(-1).tolist()], []), lr=self.lr)
+        
+        self.optimizer = torch.optim.Adam(        
+                sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.networks.reshape(-1).tolist()], []), lr=self.lr, eps=1e-4)
+
         return self
     
     def _update_old_networks(self):

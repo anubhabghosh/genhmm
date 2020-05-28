@@ -6,6 +6,50 @@ import torch
 from torch import nn, distributions
 from gm_hmm.src._torch_hmmc import _compute_log_xi_sum, _forward, _backward
 from gm_hmm.src.utils import step_learning_rate_decay
+from hmmlearn.base import ConvergenceMonitor
+from timeit import default_timer as timer
+
+class ConvgMonitor(ConvergenceMonitor):
+    def report(self, logprob):
+        """
+        Reports the convergence to the :data:'sys.stderr'
+        (which is the log file for class training hopefully)
+
+        The output consists of the three columns:
+        - Iteration Number, negative logprobability of the data at the current iterations
+        and convergence rate monitoring parameter (delta). Af first iteration, the 
+        convergence rate is unknown and is thus denoted by NaN.
+
+        ___
+        Args:
+
+        - logprob: (float) The logprob of the data as computed by the EM algorithm
+        in the current iteration
+        """
+
+        if self.verbose:
+            delta = logprob - self.history[-1] if self.history else np.nan
+            if self.history:
+                delta = torch.abs(delta)
+                delta_rel = delta / torch.abs(self.history[-1])
+            else:
+                delta_rel = np.nan
+            self.delta = delta
+            self.delta_rel = delta_rel
+            message = self._template.format(iter=self.iter+1,
+                                            logprob=logprob,
+                                            delta=self.delta_rel)
+            print(message, file=sys.stdout)
+            print("Convergence threshold:{}".format(self.tol))
+
+        self.history.append(logprob) # History contains logprob of the data for the last 2 iterations
+        self.iter += 1 # Increments the number of iterations
+
+    @property
+    def converged(self):
+        if len(self.history) == 2:
+            return self.delta_rel <= self.tol
+
 
 class GenHMMclassifier(nn.Module):
     def __init__(self, mdlc_files=None, **options):
@@ -518,11 +562,24 @@ class GenHMM(torch.nn.Module):
                                           global_step=self.global_step,
                                           minimum=1e-4,
                                           anneal_rate=0.98)
+        
+        # Assigning the adaptive learning rate to the trainable optim parameters
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = ada_lr
+        
+        # Loads the optimizer state so that changes in lr are registered
         self.optimizer.load_state_dict(self.optimizer.state_dict())
+        
         # total number of sequences
         n_sequences = len(traindata.dataset)
+        
+        # Measure epoch time
+        starttime = timer()
+
+        ##############################################################################
+        # Training process begins here 
+        ##############################################################################
+
         for i in range(self.em_skip):
             # if i is the index of last loop, set update_HMM as true
 
@@ -531,8 +588,6 @@ class GenHMM(torch.nn.Module):
             else:
                 self.update_HMM = False
 
-
-           
             total_loss = 0
             total_logprob = 0
             for b, data in enumerate(traindata):
@@ -552,10 +607,13 @@ class GenHMM(torch.nn.Module):
                                                                               total_loss/(b+1),
                                                                               -total_logprob/n_sequences), file=sys.stdout)
             
-            
-    
+        ################################################################################################
+        # Updating the HMM parameters such as start prob vector, transmat and mixture of weights for the 
+        # generative model
+        ################################################################################################
+
         # Perform EM step
-        # Update initial proba
+        # Update initial probabs
         # startprob_ = self.startprob_prior - 1.0 + self.stats['start']
         startprob_ = self.stats['start']
         self.startprob_ = torch.where(self.startprob_ == 0.0,
@@ -598,12 +656,29 @@ class GenHMM(torch.nn.Module):
         # stoe the max log_p
         self.max_log_p = log_p_all.max()
 
+        # This is the training NLL that is going to be checked for convergence at the end of these classes
         print("epoch:{}\tclass:{}\tLatest NLL:\t{}".format(self.iepoch,self.iclass,self.latestNLL),file=sys.stdout)
+        
+        # Epoch time measurement ends here
+        endtime = timer()
+
+        # Measure wallclock time
+        print("Time elapsed measured in seconds:{}".format(endtime - starttime))
+
+        # Inserting convergence check here
+        self.monitor_.report(self.latestNLL)
 
         # Flag back to False
         self.update_HMM = False
         # set global_step
         self.global_step += 1
+
+        # Break off if model has converged which is set by the convergence flag
+        if self.monitor_.converged == True:
+            print("Convergence attained!!")
+            return True
+        else:
+            return False
 
 class wrapper(torch.nn.Module):
     def __init__(self, mdl):

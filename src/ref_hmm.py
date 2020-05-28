@@ -173,8 +173,8 @@ class GMM_HMM(hmm.GMMHMM):
             self._do_mstep(stats,X)
             
             self.monitor_.report(curr_logprob/stats["nobs"])
-            # if self.monitor_.converged:
-            #     break
+            if self.monitor_.converged:
+                 break
 
         return self
    

@@ -18,8 +18,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Set random seeds for reproducibility
-    # np.random.seed(2)
-    # torch.manual_seed(2)
+    #np.random.seed(2)
+    #torch.manual_seed(2)
     
     # Parse
     train_inputfile = sys.argv[1]
@@ -47,6 +47,10 @@ if __name__ == "__main__":
     # load the parameters
     with open(param_file) as f_in:
         options = json.load(f_in)
+     
+    # Load the classmap additionally for handling corner cases
+    with open("data/class_map.json") as c:
+        classmap = json.load(c)
 
     # adoptive to set number of states
     #options["Net"]["n_states"] = np.clip(int(np.floor(np.mean(l)/2)),
@@ -64,15 +68,36 @@ if __name__ == "__main__":
     # niter counts the number of em steps before saving a model checkpoint
     niter = options["Train"]["niter"]
 
-    # NOTE: Poor fix for <sil> class and some other problematic classes 
-    if iclass_str == '39':
-        tol = 3e-2
-        ncon_int = 2
-    elif iclass_str == '6' or iclass_str == '16' or iclass_str == '26' or iclass_str == '30' or iclass_str == '38':
-        tol = 2.5e-2
+    # Trying to make the batch size adaptive
+    bsize = options["Train"]["batch_size"]
+    
+    if len(l) < 1000: # NOTE: 1000 is just a heuristic considered
+        bsize = bsize // 2
         ncon_int = 3
+        niter = niter + 10 # 10 iterations extra added for ensuring convergence in case of small batch sizes 
+        options[network_type]["lr"] = options[network_type]["lr"] / 2 # Decrease Lr proportional to batchsize
+        print("No. of samples considered:{}, batch_size:{}, num_training iterations (max):{}, lr:{}".format(len(l), bsize, niter, options[network_type]["lr"]))
+    else:
+        #bsize = bsize // 2 #NOTE: Try to reduce batch size here as well
+        print("No. of samples considered:{}, batch_size:{}, num_training iterations (max):{}, lr:{}".format(len(l), bsize, niter, options[network_type]["lr"]))
+    
+    # NOTE: Poor fix for <sil> class and some other problematic classes 
+    #if iclass_str == '39':
+    #    tol = 3e-2
+    #    ncon_int = 2
+    #elif iclass_str == '6' or iclass_str == '9' or iclass_str == '15' or iclass_str == '16' or iclass_str == '26' or iclass_str == '30' or iclass_str == '38':
+    #    tol = 2.5e-2
+    #    ncon_int = 3
+    if classmap[str(int(iclass_str)-1)] == "sil":
+        tol = 3e-2        
+        ncon_int = 2
+    elif classmap[str(int(iclass_str)-1)] == "ey" or classmap[str(int(iclass_str)-1)] == "ow" or classmap[str(int(iclass_str)-1)] == "k" or classmap[str(int(iclass_str)-1)] == "ih" or classmap[str(int(iclass_str)-1)] == "t" or classmap[str(int(iclass_str)-1)] == "aa" or classmap[str(int(iclass_str)-1)] == "z":
+        #tol = 2.5e-2
+        tol = 2e-2 # Try to see what happens if this criterion is relaxed
+        ncon_int = 3
+
     # niter counts the number of em steps before saving a model checkpoint
-    niter = options["Train"]["niter"]
+    # niter = options["Train"]["niter"]
     
     #  Load or create model
     if epoch_str == '1':
@@ -117,7 +142,8 @@ if __name__ == "__main__":
     max_len_ = max([x.shape[0] for x in xtrain])
     xtrain_padded = pad_data(xtrain, max_len_)
 
-    traindata = DataLoader(dataset=TheDataset(xtrain_padded, lengths=l, device=mdl.device), batch_size=options["Train"]["batch_size"], shuffle=True)
+    #traindata = DataLoader(dataset=TheDataset(xtrain_padded, lengths=l, device=mdl.device), batch_size=options["Train"]["batch_size"], shuffle=True)
+    traindata = DataLoader(dataset=TheDataset(xtrain_padded, lengths=l, device=mdl.device), batch_size=bsize, shuffle=True)
 
     # niter counts the number of em steps before saving a model checkpoint
     # niter = options["Train"]["niter"]
@@ -135,25 +161,38 @@ if __name__ == "__main__":
     #convg_count = 0
     #ncon_int = 3 # No. of consecutive iterations to be checked
     iter_arr = [] # Empty list to store iteration numbers to check for consecutive iterations
+    iter_count = 0 # Counts the number of consecutive iterations
+    iter_prev = 0 # Stores the value of the previous iteration index
 
     for iiter in range(niter):
         #mdl.fit(traindata)
         mdl.iter = iiter
         flag = mdl.fit(traindata)
 #        if flag and iiter > (niter // 2):
-        if flag: # If convergence is satisfied
-            #convg_count += 1
-            #if convg_count > 0:
-                #print("Exit loop")
-                #break
+        if flag == True and iter_prev == 0: # If convergence is satisfied in first condition itself
+            print("Iteration:{}".format(iiter))                        
+            iter_count += 1
             iter_arr.append(iiter)
-            if len(iter_arr) == ncon_int and iter_arr == list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
-                print("Exit loop after {} consecutive iterations having relative change in NLL below tolerance of {}".format(ncon_int, tol))
+            if iter_count == ncon_int:
+                print("Exit and Convergence reached after {} iterations for relative change in NLL below :{}".format(iter_count, tol))
                 break
-            elif len(iter_arr) == ncon_int and iter_arr != list(range(min(iter_arr), min(iter_arr)+ int(ncon_int))):
-                iter_arr = [] # Reset the buffer
+        
+        elif flag == True and iter_prev == iiter - 1: # If convergence is satisfied
+            print("Iteration:{}".format(iiter))
+            iter_count += 1
+            iter_arr.append(iiter)
+            if iter_count == ncon_int:
+                print("Consecutive iterations are:{}".format(iter_arr))
+                print("Exit and Convergence reached after {} iterations for relative change in NLL below :{}".format(iter_count, tol))
+                break
+
         else:
-            continue
+            print("Consecutive criteria failed, Buffer Reset!!")
+            print("Buffer State:{}".format(iter_arr)) # Display the buffer state till that time
+            iter_count = 0 # Counter set to zero
+            iter_arr = [] # Buffer reset
+
+        iter_prev = iiter # Set iter_prev as the index of previous iteration
 
     # Push back to cpu for compatibility when GPU unavailable.
     mdl.pushto('cpu')
