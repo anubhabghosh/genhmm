@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from scipy.io import savemat
 import json
 import time
+from scipy import stats
 
 def set_model(mdl_file, model_type):
 
@@ -56,15 +57,17 @@ def compute_voting_predictions(combined_mdls_hat, true_class=None):
     # Choosing the prediction that has maximum vote
     # NOTE: Needs to be fixed for the case when all three of them predict something differently
     # Simply choose the prediction that is selected by majority
-    voted_mdl_class_hat = np.array(list(map(lambda x: np.argmax(np.bincount(x)), combined_mdls_hat)))
+    #voted_mdl_class_hat = np.array(list(map(lambda x: np.argmax(np.bincount(x)), combined_mdls_hat)))
+    modes, counts = stats.mode(combined_mdls_hat, axis=1)
+    voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else np.random.choice(combined_mdls_hat[i,:]) for i in range(combined_mdls_hat.shape[0])])
     return voted_mdl_class_hat
     
 if __name__ == "__main__":
     
     usage = "Usage: python bin/compute_accuracy_voting.py [mdl file] [ training and testing data .pkl files separated by space]\n" \
-            "Example: python bin/compute_accuracy_voting.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl" \
-            "NOTE: Relative paths for different kind of models required to be set within the function"\
-            "NOTE: Assume default path from where this script is executed is in the glowHMM_* directory"
+            "Example: python bin/compute_accuracy_voting.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl\n" \
+            "NOTE: Relative paths for different kind of models required to be set within the function\n" \
+            "NOTE: Assume default path from where this script is executed is in the glowHMM_* directory\n" 
 
     if len(sys.argv) != 4 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(usage, file=sys.stdout)
@@ -111,6 +114,11 @@ if __name__ == "__main__":
                    for iclass in range(nclasses)])
 
     file1 = open("./log/metrics_class_all.log", "w+")
+    correct_gmm = 0
+    correct_nvp = 0
+    correct_glow = 0
+    correct_voted = 0
+    total_samples = 0
 
     for i in range(te_data_files.shape[0]):
 
@@ -177,22 +185,44 @@ if __name__ == "__main__":
         ##########################################################
 
         issimilar_nvp_glow = nvp_mdl_class_hat == glow_mdl_class_hat # Discover the number of same predictions
-        issimilar_gmm_glow = gmm_mdl_class_hat == glow_mdl_class_hat # Discover the number of same predictions
-        issimilar_gmm_nvp = nvp_mdl_class_hat == gmm_mdl_class_hat # Discover the number of same predictions
+        issimilar_gmm_glow = gmm_mdl_class_hat == glow_mdl_class_hat.cpu().numpy() # Discover the number of same predictions
+        issimilar_gmm_nvp = gmm_mdl_class_hat == nvp_mdl_class_hat.cpu().numpy() # Discover the number of same predictions
         
-        combined_mdls_hat = np.concatenate((gmm_mdl_class_hat.reshape(-1, 1), nvp_mdl_class_hat.reshape(-1, 1), glow_mdl_class_hat.reshape(-1, 1)), axis=1)
+        combined_mdls_hat = np.concatenate((gmm_mdl_class_hat.reshape(-1, 1), nvp_mdl_class_hat.cpu().numpy().reshape(-1, 1), glow_mdl_class_hat.cpu().numpy().reshape(-1, 1)), axis=1)
+        #combined_mdls_hat = np.concatenate((nvp_mdl_class_hat.cpu().numpy().reshape(-1, 1), glow_mdl_class_hat.cpu().numpy().reshape(-1, 1)), axis=1)
         voted_mdl_class_hat = compute_voting_predictions(combined_mdls_hat)
         istrue_voted_mdl = voted_mdl_class_hat == int(true_class)
         
+        #print("NVP selections for True class:{} is :\n".format(int(true_class)))
+        #print(nvp_mdl_class_hat)
+        #print("Glow selections for True class:{} is :\n".format(int(true_class)))
+        #print(glow_mdl_class_hat)
+        #print("Voted selections for True class:{} is \n".format(int(true_class)))
+        #print(voted_mdl_class_hat)
+
+        print("Voted-HMM --", data_file, "Done ...", "{}/{}".format(str(istrue_voted_mdl.sum()), str(istrue_voted_mdl.shape[0])))
+
         file1.write("Class:{}\tAcc_GMM:{:.3f}\tAcc_NVP:{:.3f}\tAcc_Glow:{:.3f}\tAcc_Voted:{:.3f}\n".format(i+1, 
                                                                                                        istrue_gmm_mdl.sum()/istrue_gmm_mdl.shape[0],
                                                                                                        istrue_nvp_mdl.sum().cpu().numpy()/istrue_nvp_mdl.shape[0],
                                                                                                        istrue_glow_mdl.sum().cpu().numpy()/istrue_glow_mdl.shape[0],
-                                                                                                       istrue_voted_mdl.sum().cpu().numpy()/istrue_voted_mdl.shape[0]))
+                                                                                                       istrue_voted_mdl.sum()/istrue_voted_mdl.shape[0]))
 
         file1.write("Sim_NVP-Glow:{:.3f}\tSim_GMM-Glow:{:.3f}\tSim_GMM-NVP:{:.3f}\n".format(issimilar_nvp_glow.sum().cpu().numpy()/issimilar_nvp_glow.shape[0],
-                                                                       issimilar_gmm_glow.sum().cpu().numpy()/issimilar_gmm_glow.shape[0],
-                                                                       issimilar_gmm_nvp.sum().cpu().numpy()/issimilar_gmm_nvp.shape[0]))
+                                                                       issimilar_gmm_glow.sum()/issimilar_gmm_glow.shape[0],
+                                                                       issimilar_gmm_nvp.sum()/issimilar_gmm_nvp.shape[0]))
+        
+        correct_gmm += istrue_gmm_mdl.sum()
+        correct_nvp += istrue_nvp_mdl.sum().cpu().numpy()
+        correct_glow += istrue_glow_mdl.sum().cpu().numpy()
+        correct_voted += istrue_voted_mdl.sum()
+        total_samples += istrue_gmm_mdl.shape[0]
+
+
+    file1.write("GMM-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_gmm, total_samples, correct_gmm/total_samples))
+    file1.write("NVP-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_nvp, total_samples, correct_nvp/total_samples))
+    file1.write("Glow-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_glow, total_samples, correct_glow/total_samples))
+    file1.write("Voted-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_voted, total_samples, correct_voted/total_samples))
 
     file1.close() # Closing the file after contents have been written
     sys.exit(0)
