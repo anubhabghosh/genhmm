@@ -257,13 +257,13 @@ if __name__ == "__main__":
 
         print("Voted-HMM --", te_data_file, "Done ...", "{}/{}".format(str(istrue_voted_mdl.sum()), str(istrue_voted_mdl.shape[0])))
 
-        file1.write("Class:{}\tAcc_GMM:{:.3f}\tAcc_NVP:{:.3f}\tAcc_Glow:{:.3f}\tAcc_Voted:{:.3f}\n".format(i+1, 
+        file1.write("Class:{} ({})\tAcc_GMM:{:.3f}\tAcc_NVP:{:.3f}\tAcc_Glow:{:.3f}\tAcc_Voted:{:.3f}\n".format(i+1,iclass_phn,
                                                                                                        istrue_gmm_mdl.sum()/istrue_gmm_mdl.shape[0],
                                                                                                        istrue_nvp_mdl.sum().cpu().numpy()/istrue_nvp_mdl.shape[0],
                                                                                                        istrue_glow_mdl.sum().cpu().numpy()/istrue_glow_mdl.shape[0],
                                                                                                        istrue_voted_mdl.sum()/istrue_voted_mdl.shape[0]))
 
-        file1.write("Class:{}\tC_train:{}\tC_test:{}\tCount3_true:{}\tCount3_false:{}\tCount2_true:{}\tCount2_false:{}\tCount1_true:{}\tCount1_false:{}\n".format(i+1,
+        file1.write("Class:{} ({})\tC_train:{}\tC_test:{}\tCount3_true:{}\tCount3_false:{}\tCount2_true:{}\tCount2_false:{}\tCount1_true:{}\tCount1_false:{}\n".format(i+1,iclass_phn,
                                                                                                                                                                   C_train,
                                                                                                                                                                   C_test,
                                                                                                                                                                   Count_dict[3][0],
