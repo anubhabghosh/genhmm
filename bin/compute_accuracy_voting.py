@@ -60,8 +60,36 @@ def compute_voting_predictions(combined_mdls_hat, true_class=None):
     #voted_mdl_class_hat = np.array(list(map(lambda x: np.argmax(np.bincount(x)), combined_mdls_hat)))
     modes, counts = stats.mode(combined_mdls_hat, axis=1)
     voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else np.random.choice(combined_mdls_hat[i,:]) for i in range(combined_mdls_hat.shape[0])])
-    return voted_mdl_class_hat
     
+    Count3_true, Count3_false = check_pred_similarity(modes, counts, 3, true_class)
+    Count2_true, Count2_false = check_pred_similarity(modes, counts, 2, true_class)
+    Count1_true, Count1_false = check_pred_similarity(modes, counts, 1, true_class)
+
+    Count_dict = {}
+    Count_dict[1] = [Count1_true, Count1_false] / np.float(len(counts))
+    Count_dict[2] = [Count2_true, Count2_false] / np.float(len(counts))
+    Count_dict[3] = [Count3_true, Count3_false] / np.float(len(counts))
+
+    return voted_mdl_class_hat, Count_dict
+
+def compute_sample_complexity(datafiles):
+
+    # Obtain lengths of the individual class data files and calculate the one with the highest number of samples
+    lengths = []
+    for i in range(len(datafiles)):
+        datafile = pkl.load(open(datafiles[i], "rb"))
+        lengths.append(datafile.shape[0])
+    
+    s_complexity = lengths / max(lengths) 
+    return s_complexity 
+
+def check_pred_similarity(modes, counts, N, true_class):
+    
+    where_countN = np.where(counts == N)[0] # find indices where count is 2
+    CountN_true = (modes[where_countN] == true_class).sum()
+    CountN_false = len(modes[where_countN]) - CountN_true
+    return CountN_true, CountN_false
+
 if __name__ == "__main__":
     
     usage = "Usage: python bin/compute_accuracy_voting.py [mdl file] [ training and testing data .pkl files separated by space]\n" \
@@ -83,8 +111,8 @@ if __name__ == "__main__":
     # Pathnames for different kind of models
     # Assume default path is in the glowHMM_clean directory
 
-    gmm_mdl_path = "../../../gaus/39feats/gaussK20_clean_5classes/"
-    nvp_mdl_path = "../genHMM_RealNVP_clean/"
+    gmm_mdl_path = "../../../gaus/39feats/gmmHMM_clean/"
+    nvp_mdl_path = "../nvpHMM_clean/"
     glow_mdl_path = "./"
 
     assert os.path.isfile(gmm_mdl_path + mdl_file) == True # GMM-HMM model file
@@ -99,6 +127,12 @@ if __name__ == "__main__":
     with open("default.json") as f_in:
         options = json.load(f_in)
     
+    classmap_file = "./data/class_map.json" # As the same classmap is planned to used for all the classes-
+    
+    # load the classmap dict
+    with open(classmap_file) as f:
+        classmap = json.load(f)
+
     gmm_mdl_loaded = set_model(gmm_mdl, 'gaus')
     nvp_mdl_loaded = set_model(nvp_mdl, 'gen')
     glow_mdl_loaded = set_model(glow_mdl, 'glow')
@@ -112,6 +146,12 @@ if __name__ == "__main__":
     # size: nclass x 2 (train, test)
     te_data_files = np.array([append_class(testing_data_file, iclass+1)
                    for iclass in range(nclasses)])
+    
+    tr_data_files = np.array([append_class(training_data_file, iclass+1)
+                   for iclass in range(nclasses)])
+
+    tr_sample_complexity = compute_sample_complexity(tr_data_files) # vector containing values representing sample compleixty for training data
+    te_sample_complexity = compute_sample_complexity(te_data_files) # vector containing values representing sample complexity for test data
 
     file1 = open("./log/metrics_class_all.log", "w+")
     correct_gmm = 0
@@ -122,11 +162,13 @@ if __name__ == "__main__":
 
     for i in range(te_data_files.shape[0]):
 
-        data_file = te_data_files[i] # Get the test data file
+        te_data_file = te_data_files[i] # Get the test data file
+        tr_data_file = tr_data_files[i] # Get the testing data file
 
         # Load the data file
         try:
-            X = pkl.load(open(data_file, "rb")) 
+            X_test = pkl.load(open(te_data_file, "rb")) 
+            X_train = pkl.load(open(tr_data_file,"rb"))
         except:
             print("File not found")
         
@@ -134,18 +176,26 @@ if __name__ == "__main__":
         # Get the predicted class values for GMM-HMM
         #######################################################
 
-        # Get the length of all the sequences
-        l = [xx.shape[0] for xx in X]
+        # Get the sample complexity (as a ratio of no. of samples in the given training class file 
+        # and the maximum number of samples in any given class file)
+        C_train = tr_sample_complexity[i] 
+        C_test = te_sample_complexity[i]
+
+        # Get the class phoneme for the given class number
+        iclass_phn = classmap[str(i)]
+
+        # Get the length of all the sequences in the given class file
+        l = [xx.shape[0] for xx in X_test]
         # zero pad data for batch training
 
-        true_class = parse("{}_{}.pkl", os.path.basename(data_file))[1]
-        gmm_mdl_out_list = [gmm_mdl_loaded.forward(x_i[:,1:]) for x_i in X]
+        true_class = parse("{}_{}.pkl", os.path.basename(te_data_file))[1]
+        gmm_mdl_out_list = [gmm_mdl_loaded.forward(x_i[:,1:]) for x_i in X_test]
         gmm_mdl_out = np.array(gmm_mdl_out_list).transpose()
 
         # the out here should be the shape: data_size * nclasses
         gmm_mdl_class_hat = np.argmax(gmm_mdl_out, axis=0) + 1
         istrue_gmm_mdl = gmm_mdl_class_hat == int(true_class)
-        print("GMM-HMM -- ", data_file, "Done ...", "{}/{}".format(str(istrue_gmm_mdl.sum()), str(istrue_gmm_mdl.shape[0])))
+        print("GMM-HMM -- ", te_data_file, "Done ...", "{}/{}".format(str(istrue_gmm_mdl.sum()), str(istrue_gmm_mdl.shape[0])))
 
         #######################################################
         # Get the predicted class values for NVP-HMM
@@ -153,7 +203,7 @@ if __name__ == "__main__":
 
         # zero pad data for batch training
         max_len_ = max(l)
-        x_padded = pad_data(X, max_len_)
+        x_padded = pad_data(X_test, max_len_)
         batchdata = DataLoader(dataset=TheDataset(x_padded,
                                                   lengths=l,
                                                   device=nvp_mdl_loaded.hmms[0].device),
@@ -165,7 +215,7 @@ if __name__ == "__main__":
         nvp_mdl_class_hat = torch.argmax(nvp_mdl_out, dim=0) + 1
 
         istrue_nvp_mdl = nvp_mdl_class_hat == int(true_class)
-        print("NVP-HMM -- ", data_file, "Done ...", "{}/{}".format(str(istrue_nvp_mdl.sum().cpu().numpy()), str(istrue_nvp_mdl.shape[0])))
+        print("NVP-HMM -- ", te_data_file, "Done ...", "{}/{}".format(str(istrue_nvp_mdl.sum().cpu().numpy()), str(istrue_nvp_mdl.shape[0])))
 
         #######################################################
         # Get the predicted class values for Glow-HMM
@@ -176,7 +226,7 @@ if __name__ == "__main__":
         glow_mdl_class_hat = torch.argmax(glow_mdl_out, dim=0) + 1
 
         istrue_glow_mdl = glow_mdl_class_hat == int(true_class)
-        print("Glow-HMM -- ", data_file, "Done ...", "{}/{}".format(str(istrue_glow_mdl.sum().cpu().numpy()), str(istrue_glow_mdl.shape[0])))
+        print("Glow-HMM -- ", te_data_file, "Done ...", "{}/{}".format(str(istrue_glow_mdl.sum().cpu().numpy()), str(istrue_glow_mdl.shape[0])))
 
         ##########################################################
         # Compute Additional Metrics to indicate:
@@ -190,9 +240,14 @@ if __name__ == "__main__":
         
         combined_mdls_hat = np.concatenate((gmm_mdl_class_hat.reshape(-1, 1), nvp_mdl_class_hat.cpu().numpy().reshape(-1, 1), glow_mdl_class_hat.cpu().numpy().reshape(-1, 1)), axis=1)
         #combined_mdls_hat = np.concatenate((nvp_mdl_class_hat.cpu().numpy().reshape(-1, 1), glow_mdl_class_hat.cpu().numpy().reshape(-1, 1)), axis=1)
-        voted_mdl_class_hat = compute_voting_predictions(combined_mdls_hat)
+        
+        # Compute the voting predictions
+        voted_mdl_class_hat, Count_dict = compute_voting_predictions(combined_mdls_hat)
         istrue_voted_mdl = voted_mdl_class_hat == int(true_class)
         
+        # Get additional statistics based on count
+        counts_checked = list(Count_dict.keys())
+
         #print("NVP selections for True class:{} is :\n".format(int(true_class)))
         #print(nvp_mdl_class_hat)
         #print("Glow selections for True class:{} is :\n".format(int(true_class)))
@@ -200,13 +255,23 @@ if __name__ == "__main__":
         #print("Voted selections for True class:{} is \n".format(int(true_class)))
         #print(voted_mdl_class_hat)
 
-        print("Voted-HMM --", data_file, "Done ...", "{}/{}".format(str(istrue_voted_mdl.sum()), str(istrue_voted_mdl.shape[0])))
+        print("Voted-HMM --", te_data_file, "Done ...", "{}/{}".format(str(istrue_voted_mdl.sum()), str(istrue_voted_mdl.shape[0])))
 
         file1.write("Class:{}\tAcc_GMM:{:.3f}\tAcc_NVP:{:.3f}\tAcc_Glow:{:.3f}\tAcc_Voted:{:.3f}\n".format(i+1, 
                                                                                                        istrue_gmm_mdl.sum()/istrue_gmm_mdl.shape[0],
                                                                                                        istrue_nvp_mdl.sum().cpu().numpy()/istrue_nvp_mdl.shape[0],
                                                                                                        istrue_glow_mdl.sum().cpu().numpy()/istrue_glow_mdl.shape[0],
                                                                                                        istrue_voted_mdl.sum()/istrue_voted_mdl.shape[0]))
+
+        file1.write("Class:{}\tC_train:{}\tC_test:{}\tCount3_true:{}\tCount3_false:{}\tCount2_true:{}\tCount2_false:{}\tCount1_true:{}\tCount1_false:{}\n".format(i+1,
+                                                                                                                                                                  C_train,
+                                                                                                                                                                  C_test,
+                                                                                                                                                                  Count_dict[3][0],
+                                                                                                                                                                  Count_dict[3][1],
+                                                                                                                                                                  Count_dict[2][0],
+                                                                                                                                                                  Count_dict[2][1],
+                                                                                                                                                                  Count_dict[1][0],
+                                                                                                                                                                  Count_dict[1][1]))
 
         file1.write("Sim_NVP-Glow:{:.3f}\tSim_GMM-Glow:{:.3f}\tSim_GMM-NVP:{:.3f}\n".format(issimilar_nvp_glow.sum().cpu().numpy()/issimilar_nvp_glow.shape[0],
                                                                        issimilar_gmm_glow.sum()/issimilar_gmm_glow.shape[0],
