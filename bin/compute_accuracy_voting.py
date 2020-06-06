@@ -59,16 +59,17 @@ def compute_voting_predictions(combined_mdls_hat, true_class=None):
     # Simply choose the prediction that is selected by majority
     #voted_mdl_class_hat = np.array(list(map(lambda x: np.argmax(np.bincount(x)), combined_mdls_hat)))
     modes, counts = stats.mode(combined_mdls_hat, axis=1)
-    voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else np.random.choice(combined_mdls_hat[i,:]) for i in range(combined_mdls_hat.shape[0])])
-    
+    #voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else np.random.choice(combined_mdls_hat[i,:]) for i in range(combined_mdls_hat.shape[0])])
+    voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else combined_mdls_hat[i,1] for i in range(combined_mdls_hat.shape[0])]) # Use NVP prediction in case there is no consensus
+
     Count3_true, Count3_false = check_pred_similarity(modes, counts, 3, true_class)
     Count2_true, Count2_false = check_pred_similarity(modes, counts, 2, true_class)
     Count1_true, Count1_false = check_pred_similarity(modes, counts, 1, true_class)
 
     Count_dict = {}
-    Count_dict[1] = [Count1_true, Count1_false] / np.float(len(counts))
-    Count_dict[2] = [Count2_true, Count2_false] / np.float(len(counts))
-    Count_dict[3] = [Count3_true, Count3_false] / np.float(len(counts))
+    Count_dict[1] = np.array([Count1_true, Count1_false]) / np.float(len(counts))
+    Count_dict[2] = np.array([Count2_true, Count2_false]) / np.float(len(counts))
+    Count_dict[3] = np.array([Count3_true, Count3_false]) / np.float(len(counts))
 
     return voted_mdl_class_hat, Count_dict
 
@@ -80,11 +81,12 @@ def compute_sample_complexity(datafiles):
         datafile = pkl.load(open(datafiles[i], "rb"))
         lengths.append(datafile.shape[0])
     
-    s_complexity = lengths / max(lengths) 
+    s_complexity = np.array(lengths) / max(lengths) 
     return s_complexity 
 
 def check_pred_similarity(modes, counts, N, true_class):
     
+    assert true_class is not None
     where_countN = np.where(counts == N)[0] # find indices where count is 2
     CountN_true = (modes[where_countN] == true_class).sum()
     CountN_false = len(modes[where_countN]) - CountN_true
@@ -242,7 +244,7 @@ if __name__ == "__main__":
         #combined_mdls_hat = np.concatenate((nvp_mdl_class_hat.cpu().numpy().reshape(-1, 1), glow_mdl_class_hat.cpu().numpy().reshape(-1, 1)), axis=1)
         
         # Compute the voting predictions
-        voted_mdl_class_hat, Count_dict = compute_voting_predictions(combined_mdls_hat)
+        voted_mdl_class_hat, Count_dict = compute_voting_predictions(combined_mdls_hat, int(true_class))
         istrue_voted_mdl = voted_mdl_class_hat == int(true_class)
         
         # Get additional statistics based on count
@@ -256,34 +258,28 @@ if __name__ == "__main__":
         #print(voted_mdl_class_hat)
 
         print("Voted-HMM --", te_data_file, "Done ...", "{}/{}".format(str(istrue_voted_mdl.sum()), str(istrue_voted_mdl.shape[0])))
+        
+        file1.write("Class:{} ({})\n\n No. of samples: Train-{}, Test-{}\n".format(i+1, iclass_phn, X_train.shape[0], X_test.shape[0]))
+        file1.write("Acc_GMM:{:.3f}\tAcc_NVP:{:.3f}\tAcc_Glow:{:.3f}\tAcc_Voted:{:.3f}\n".format(istrue_gmm_mdl.sum()/istrue_gmm_mdl.shape[0],
+                                                                                                 istrue_nvp_mdl.sum().cpu().numpy()/istrue_nvp_mdl.shape[0],
+                                                                                                 istrue_glow_mdl.sum().cpu().numpy()/istrue_glow_mdl.shape[0],
+                                                                                                 istrue_voted_mdl.sum()/istrue_voted_mdl.shape[0]))
 
-        file1.write("Class:{} ({})\tAcc_GMM:{:.3f}\tAcc_NVP:{:.3f}\tAcc_Glow:{:.3f}\tAcc_Voted:{:.3f}\n".format(i+1,iclass_phn,
-                                                                                                       istrue_gmm_mdl.sum()/istrue_gmm_mdl.shape[0],
-                                                                                                       istrue_nvp_mdl.sum().cpu().numpy()/istrue_nvp_mdl.shape[0],
-                                                                                                       istrue_glow_mdl.sum().cpu().numpy()/istrue_glow_mdl.shape[0],
-                                                                                                       istrue_voted_mdl.sum()/istrue_voted_mdl.shape[0]))
+        file1.write("C_train:{:.3f}\tC_test:{:.3f}\tCount3_true:{:.3f}\tCount3_false:{:.3f}\tCount2_true:{:.3f}\tCount2_false:{:.3f}\tCount1_true:{:.3f}\tCount1_false:{:.3f}\n".format(C_train, C_test, Count_dict[3][0], Count_dict[3][1], Count_dict[2][0], Count_dict[2][1], Count_dict[1][0], Count_dict[1][1]))
 
-        file1.write("Class:{} ({})\tC_train:{}\tC_test:{}\tCount3_true:{}\tCount3_false:{}\tCount2_true:{}\tCount2_false:{}\tCount1_true:{}\tCount1_false:{}\n".format(i+1,iclass_phn,
-                                                                                                                                                                  C_train,
-                                                                                                                                                                  C_test,
-                                                                                                                                                                  Count_dict[3][0],
-                                                                                                                                                                  Count_dict[3][1],
-                                                                                                                                                                  Count_dict[2][0],
-                                                                                                                                                                  Count_dict[2][1],
-                                                                                                                                                                  Count_dict[1][0],
-                                                                                                                                                                  Count_dict[1][1]))
-
-        file1.write("Sim_NVP-Glow:{:.3f}\tSim_GMM-Glow:{:.3f}\tSim_GMM-NVP:{:.3f}\n".format(issimilar_nvp_glow.sum().cpu().numpy()/issimilar_nvp_glow.shape[0],
+        file1.write("Sim_NVP-Glow:{:.3f}\tSim_GMM-Glow:{:.3f}\tSim_GMM-NVP:{:.3f}\n\n".format(issimilar_nvp_glow.sum().cpu().numpy()/issimilar_nvp_glow.shape[0],
                                                                        issimilar_gmm_glow.sum()/issimilar_gmm_glow.shape[0],
                                                                        issimilar_gmm_nvp.sum()/issimilar_gmm_nvp.shape[0]))
-        
+        file1.write("------------------------------------------------\n")
+
         correct_gmm += istrue_gmm_mdl.sum()
         correct_nvp += istrue_nvp_mdl.sum().cpu().numpy()
         correct_glow += istrue_glow_mdl.sum().cpu().numpy()
         correct_voted += istrue_voted_mdl.sum()
         total_samples += istrue_gmm_mdl.shape[0]
 
-
+    file1.write("------------------------------------------------\n")
+    file1.write("------------------------------------------------\n")
     file1.write("GMM-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_gmm, total_samples, correct_gmm/total_samples))
     file1.write("NVP-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_nvp, total_samples, correct_nvp/total_samples))
     file1.write("Glow-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_glow, total_samples, correct_glow/total_samples))
