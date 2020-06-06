@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from scipy.io import savemat
 import json
 import time
+import pandas as pd
 from scipy import stats
 
 def set_model(mdl_file, model_type):
@@ -92,6 +93,24 @@ def check_pred_similarity(modes, counts, N, true_class):
     CountN_false = len(modes[where_countN]) - CountN_true
     return CountN_true, CountN_false
 
+def get_phoneme_type(phn, phonemes_type_dict):
+    for item in phonemes_type_dict.items():
+        if phn in item[1]:
+            return item[0]
+
+def create_phoneme_type_dict():
+
+    # P - Plosives, F - Fricatives, N - Nasals, SV - Semi-Vowels, D - Dipthongs, C - Closures
+    phonemes_type_dict = {'P':['b','d','g','p','t','k','jh','ch'],
+                      'F':['s','sh','z','f','th','v','dh','hh'],
+                      'N':['m','n','ng'],
+                      'SV':['l','r','er','w','y'],
+                      'V':['iy','ih','eh','ae','aa','ah','uh','uw'],
+                      'D':['ey','aw','ay','oy','ow'],
+                      'C':['sil','dx']}
+
+    return phonemes_type_dict
+
 if __name__ == "__main__":
     
     usage = "Usage: python bin/compute_accuracy_voting.py [mdl file] [ training and testing data .pkl files separated by space]\n" \
@@ -144,6 +163,9 @@ if __name__ == "__main__":
     totclasses = 39
     batch_size_ = 128
 
+    # Get the phoneme type mapping dictionary
+    phonemes_type_dict = create_phoneme_type_dict()
+
     # Builds an array of string containing the train and test data sets for each class
     # size: nclass x 2 (train, test)
     te_data_files = np.array([append_class(testing_data_file, iclass+1)
@@ -153,14 +175,20 @@ if __name__ == "__main__":
                    for iclass in range(nclasses)])
 
     tr_sample_complexity = compute_sample_complexity(tr_data_files) # vector containing values representing sample compleixty for training data
-    te_sample_complexity = compute_sample_complexity(te_data_files) # vector containing values representing sample complexity for test data
+    #te_sample_complexity = compute_sample_complexity(te_data_files) # vector containing values representing sample complexity for test data
 
-    file1 = open("./log/metrics_class_all.log", "w+")
+    file1 = open("./log/metrics_class_all.log", "w+") # Opening the file
+    df_filename = "./log/metrics_class_all.xlsx" # Define an excel file name for storing log results using dataframes
     correct_gmm = 0
     correct_nvp = 0
     correct_glow = 0
     correct_voted = 0
     total_samples = 0
+
+    metrics = [] # Create a blank list to append lists for creating a dataframe
+    metrics_columns = ['Phoneme', 'Type', 'Acc_GMM', 'Acc_NVP', 'Acc_Glow', 'Acc_Voting', 
+                       'N_Agreed_3_True', 'N_Agreed_3_False', 'N_Agreed_2_True', 'N_Agreed_2_False', 
+                       'N_Agreed_1_True', 'N_Agreed_1_False'] # Predefine the dataframe column headers 
 
     for i in range(te_data_files.shape[0]):
 
@@ -181,10 +209,14 @@ if __name__ == "__main__":
         # Get the sample complexity (as a ratio of no. of samples in the given training class file 
         # and the maximum number of samples in any given class file)
         C_train = tr_sample_complexity[i] 
-        C_test = te_sample_complexity[i]
 
         # Get the class phoneme for the given class number
         iclass_phn = classmap[str(i)]
+        
+        # Get the phoneme type
+        iclass_phn_type = get_phoneme_type(iclass_phn, phonemes_type_dict)
+        if iclass_phn_type == None:
+            iclass_phn_type = '<UNK>' 
 
         # Get the length of all the sequences in the given class file
         l = [xx.shape[0] for xx in X_test]
@@ -265,12 +297,23 @@ if __name__ == "__main__":
                                                                                                  istrue_glow_mdl.sum().cpu().numpy()/istrue_glow_mdl.shape[0],
                                                                                                  istrue_voted_mdl.sum()/istrue_voted_mdl.shape[0]))
 
-        file1.write("C_train:{:.3f}\tC_test:{:.3f}\tCount3_true:{:.3f}\tCount3_false:{:.3f}\tCount2_true:{:.3f}\tCount2_false:{:.3f}\tCount1_true:{:.3f}\tCount1_false:{:.3f}\n".format(C_train, C_test, Count_dict[3][0], Count_dict[3][1], Count_dict[2][0], Count_dict[2][1], Count_dict[1][0], Count_dict[1][1]))
+        file1.write("C_train:{:.3f}\tCount3_true:{:.3f}\tCount3_false:{:.3f}\tCount2_true:{:.3f}\tCount2_false:{:.3f}\tCount1_true:{:.3f}\tCount1_false:{:.3f}\n".format(C_train, Count_dict[3][0], Count_dict[3][1], Count_dict[2][0], Count_dict[2][1], Count_dict[1][0], Count_dict[1][1]))
 
         file1.write("Sim_NVP-Glow:{:.3f}\tSim_GMM-Glow:{:.3f}\tSim_GMM-NVP:{:.3f}\n\n".format(issimilar_nvp_glow.sum().cpu().numpy()/issimilar_nvp_glow.shape[0],
                                                                        issimilar_gmm_glow.sum()/issimilar_gmm_glow.shape[0],
                                                                        issimilar_gmm_nvp.sum()/issimilar_gmm_nvp.shape[0]))
         file1.write("------------------------------------------------\n")
+
+        # Append the metrics to the list 'metrics' that is latern to be converted into a dataframe
+        metric = [iclass_phn, iclass_phn_type, C_train, 
+                  istrue_gmm_mdl.sum()/istrue_gmm_mdl.shape[0], 
+                  istrue_nvp_mdl.sum().cpu().numpy()/istrue_nvp_mdl.shape[0], 
+                  istrue_glow_mdl.sum().cpu().numpy()/istrue_glow_mdl.shape[0],
+                  istrue_voted_mdl.sum()/istrue_voted_mdl.shape[0],
+                  Count_dict[3][0], Count_dict[3][1], Count_dict[2][0], 
+                  Count_dict[2][1], Count_dict[1][0], Count_dict[1][1]]
+
+        metrics.append(metric)
 
         correct_gmm += istrue_gmm_mdl.sum()
         correct_nvp += istrue_nvp_mdl.sum().cpu().numpy()
@@ -280,10 +323,15 @@ if __name__ == "__main__":
 
     file1.write("------------------------------------------------\n")
     file1.write("------------------------------------------------\n")
+
     file1.write("GMM-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_gmm, total_samples, correct_gmm/total_samples))
     file1.write("NVP-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_nvp, total_samples, correct_nvp/total_samples))
     file1.write("Glow-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_glow, total_samples, correct_glow/total_samples))
     file1.write("Voted-HMM -- Total Acc {:d}/{:d} = {}\n".format(correct_voted, total_samples, correct_voted/total_samples))
+
+    # Convert the collected lists into a dataframe for easy usage
+    df_metrics = pd.DataFrame(metrics, columns=metrics_columns)
+    df_metrics.to_excel(df_filename)
 
     file1.close() # Closing the file after contents have been written
     sys.exit(0)
