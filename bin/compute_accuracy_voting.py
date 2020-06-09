@@ -113,12 +113,12 @@ def create_phoneme_type_dict():
 
 if __name__ == "__main__":
     
-    usage = "Usage: python bin/compute_accuracy_voting.py [mdl file] [ training and testing data .pkl files separated by space]\n" \
-            "Example: python bin/compute_accuracy_voting.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl\n" \
+    usage = "Usage: python bin/compute_accuracy_voting.py [mdl file] [ training and testing data .pkl files separated by space] [testing type as a string (test/train)]\n" \
+            "Example: python bin/compute_accuracy_voting.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl [test/train]\n" \
             "NOTE: Relative paths for different kind of models required to be set within the function\n" \
             "NOTE: Assume default path from where this script is executed is in the glowHMM_* directory\n" 
 
-    if len(sys.argv) != 4 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
+    if len(sys.argv) != 5 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(usage, file=sys.stdout)
         sys.exit(1)
     
@@ -126,6 +126,7 @@ if __name__ == "__main__":
     mdl_file = sys.argv[1]
     training_data_file = sys.argv[2]
     testing_data_file = sys.argv[3]
+    testing_type = sys.argv[4]
 
     normalize = True # Set row-wise normalizing flag to be true
 
@@ -218,18 +219,29 @@ if __name__ == "__main__":
         if iclass_phn_type == None:
             iclass_phn_type = '<UNK>' 
 
+        # Choose the data file based on the training type
+        if testing_type.lower() == "train":
+            X = X_train
+            data_file = tr_data_file
+        elif testing_type.lower() == "test":
+            X = X_test
+            data_file = te_data_file
+        else:
+            print("Invalid testing argument !!!")
+            sys.exit(1)
+
         # Get the length of all the sequences in the given class file
-        l = [xx.shape[0] for xx in X_test]
+        l = [xx.shape[0] for xx in X]
         # zero pad data for batch training
 
-        true_class = parse("{}_{}.pkl", os.path.basename(te_data_file))[1]
-        gmm_mdl_out_list = [gmm_mdl_loaded.forward(x_i[:,1:]) for x_i in X_test]
+        true_class = parse("{}_{}.pkl", os.path.basename(data_file))[1]
+        gmm_mdl_out_list = [gmm_mdl_loaded.forward(x_i[:,1:]) for x_i in X]
         gmm_mdl_out = np.array(gmm_mdl_out_list).transpose()
 
         # the out here should be the shape: data_size * nclasses
         gmm_mdl_class_hat = np.argmax(gmm_mdl_out, axis=0) + 1
         istrue_gmm_mdl = gmm_mdl_class_hat == int(true_class)
-        print("GMM-HMM -- ", te_data_file, "Done ...", "{}/{}".format(str(istrue_gmm_mdl.sum()), str(istrue_gmm_mdl.shape[0])))
+        print("GMM-HMM -- ", data_file, "Done ...", "{}/{}".format(str(istrue_gmm_mdl.sum()), str(istrue_gmm_mdl.shape[0])))
 
         #######################################################
         # Get the predicted class values for NVP-HMM
@@ -237,7 +249,7 @@ if __name__ == "__main__":
 
         # zero pad data for batch training
         max_len_ = max(l)
-        x_padded = pad_data(X_test, max_len_)
+        x_padded = pad_data(X, max_len_)
         batchdata = DataLoader(dataset=TheDataset(x_padded,
                                                   lengths=l,
                                                   device=nvp_mdl_loaded.hmms[0].device),
@@ -249,7 +261,7 @@ if __name__ == "__main__":
         nvp_mdl_class_hat = torch.argmax(nvp_mdl_out, dim=0) + 1
 
         istrue_nvp_mdl = nvp_mdl_class_hat == int(true_class)
-        print("NVP-HMM -- ", te_data_file, "Done ...", "{}/{}".format(str(istrue_nvp_mdl.sum().cpu().numpy()), str(istrue_nvp_mdl.shape[0])))
+        print("NVP-HMM -- ", data_file, "Done ...", "{}/{}".format(str(istrue_nvp_mdl.sum().cpu().numpy()), str(istrue_nvp_mdl.shape[0])))
 
         #######################################################
         # Get the predicted class values for Glow-HMM
@@ -260,7 +272,7 @@ if __name__ == "__main__":
         glow_mdl_class_hat = torch.argmax(glow_mdl_out, dim=0) + 1
 
         istrue_glow_mdl = glow_mdl_class_hat == int(true_class)
-        print("Glow-HMM -- ", te_data_file, "Done ...", "{}/{}".format(str(istrue_glow_mdl.sum().cpu().numpy()), str(istrue_glow_mdl.shape[0])))
+        print("Glow-HMM -- ", data_file, "Done ...", "{}/{}".format(str(istrue_glow_mdl.sum().cpu().numpy()), str(istrue_glow_mdl.shape[0])))
 
         ##########################################################
         # Compute Additional Metrics to indicate:
@@ -289,7 +301,7 @@ if __name__ == "__main__":
         #print("Voted selections for True class:{} is \n".format(int(true_class)))
         #print(voted_mdl_class_hat)
 
-        print("Voted-HMM --", te_data_file, "Done ...", "{}/{}".format(str(istrue_voted_mdl.sum()), str(istrue_voted_mdl.shape[0])))
+        print("Voted-HMM --", data_file, "Done ...", "{}/{}".format(str(istrue_voted_mdl.sum()), str(istrue_voted_mdl.shape[0])))
         
         file1.write("Class:{} ({})\n\n No. of samples: Train-{}, Test-{}\n".format(i+1, iclass_phn, X_train.shape[0], X_test.shape[0]))
         file1.write("Acc_GMM:{:.3f}\tAcc_NVP:{:.3f}\tAcc_Glow:{:.3f}\tAcc_Voted:{:.3f}\n".format(istrue_gmm_mdl.sum()/istrue_gmm_mdl.shape[0],
