@@ -60,8 +60,8 @@ def compute_voting_predictions(combined_mdls_hat, true_class=None):
     # Simply choose the prediction that is selected by majority
     #voted_mdl_class_hat = np.array(list(map(lambda x: np.argmax(np.bincount(x)), combined_mdls_hat)))
     modes, counts = stats.mode(combined_mdls_hat, axis=1)
-    #voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else np.random.choice(combined_mdls_hat[i,:]) for i in range(combined_mdls_hat.shape[0])])
-    voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else combined_mdls_hat[i,1] for i in range(combined_mdls_hat.shape[0])]) # Use NVP prediction in case there is no consensus
+    voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else np.random.choice(combined_mdls_hat[i,:]) for i in range(combined_mdls_hat.shape[0])])
+    #voted_mdl_class_hat = np.array([modes[i] if counts[i] > 1 else combined_mdls_hat[i,1] for i in range(combined_mdls_hat.shape[0])]) # Use NVP prediction in case there is no consensus
 
     Count3_true, Count3_false = check_pred_similarity(modes, counts, 3, true_class)
     Count2_true, Count2_false = check_pred_similarity(modes, counts, 2, true_class)
@@ -177,8 +177,8 @@ if __name__ == "__main__":
     tr_sample_complexity = compute_sample_complexity(tr_data_files) # vector containing values representing sample compleixty for training data
     #te_sample_complexity = compute_sample_complexity(te_data_files) # vector containing values representing sample complexity for test data
 
-    file1 = open("./log/metrics_class_all.log", "w+") # Opening the file
-    df_filename = "./log/metrics_class_all.xlsx" # Define an excel file name for storing log results using dataframes
+    file1 = open("./log/metrics_class_all_2.log", "w+") # Opening the file
+    df_filename = "./log/metrics_class_all_2.json" # Define an excel file name for storing log results using dataframes
     correct_gmm = 0
     correct_nvp = 0
     correct_glow = 0
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     total_samples = 0
 
     metrics = [] # Create a blank list to append lists for creating a dataframe
-    metrics_columns = ['Phoneme', 'Type', 'Acc_GMM', 'Acc_NVP', 'Acc_Glow', 'Acc_Voting', 
+    metrics_columns = ['Phoneme', 'Type', 'C_train', 'Acc_GMM', 'Acc_NVP', 'Acc_Glow', 'Acc_Voting', 
                        'N_Agreed_3_True', 'N_Agreed_3_False', 'N_Agreed_2_True', 'N_Agreed_2_False', 
                        'N_Agreed_1_True', 'N_Agreed_1_False'] # Predefine the dataframe column headers 
 
@@ -331,7 +331,8 @@ if __name__ == "__main__":
 
     # Convert the collected lists into a dataframe for easy usage
     df_metrics = pd.DataFrame(metrics, columns=metrics_columns)
-    df_metrics.to_excel(df_filename)
+    print(df_metrics)
+    df_metrics.to_json(df_filename, orient='split')
 
     file1.close() # Closing the file after contents have been written
     sys.exit(0)
