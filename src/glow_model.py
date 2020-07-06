@@ -30,7 +30,8 @@ class FlowStep(nn.Module):
                  actnorm_scale=1.,
                  lu_decomposition=False,
                  switch_flag=None,
-                 p_drop=0):
+                 p_drop=0,
+                 weightnorm_flag=True):
         """
         One step of flow described in paper
                       ▲
@@ -87,9 +88,9 @@ class FlowStep(nn.Module):
 
         # flow coupling layer
         if coupling == 'additive':
-            self.NN = NN(in_channels // 2, hidden_channels, in_channels // 2)
+            self.NN = NN(in_channels // 2, hidden_channels, in_channels // 2, weightnorm_flag)
         else:
-            self.NN = NN(in_channels // 2, hidden_channels, in_channels)
+            self.NN = NN(in_channels // 2, hidden_channels, in_channels, weightnorm_flag)
 
     def normal_flow(self, x, logdet=None):
         """
@@ -208,7 +209,7 @@ class FlowModel_GLOW(nn.Module):
 
     def __init__(self, in_channels, hidden_channels, K, L, prior, permutation='invconv',\
                  coupling='additive', actnorm_scale=1., lu_decomposition=False, \
-                 sq_factor = 1, actnorm_flag = True, p_drop=0):
+                 sq_factor = 1, actnorm_flag = True, p_drop=0, weightnorm_flag=True):
 
         super().__init__()
         self.K = K # No. of Steps of flow (denoted by K)
@@ -242,7 +243,8 @@ class FlowModel_GLOW(nn.Module):
                     actnorm_scale=actnorm_scale,
                     lu_decomposition=lu_decomposition,
                     switch_flag=switch_flag,
-                    p_drop=p_drop))
+                    p_drop=p_drop,
+                    weightnorm_flag=weightnorm_flag))
                 #self.output_shapes.append([-1, n_channels, n_samples])
 
             # Split operation along the channels
@@ -326,7 +328,7 @@ def count_params(model):
     total_num_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad == True)
     return total_num_params, total_num_trainable_params
 
-def NN(in_channels, hidden_channels, out_channels):
+def NN(in_channels, hidden_channels, out_channels, weightnorm_flag):
     """
     Convolution block
     :param in_channels: number of input channels
@@ -340,9 +342,11 @@ def NN(in_channels, hidden_channels, out_channels):
     """
     
     return nn.Sequential(
-        Conv1d(in_channels, hidden_channels),
+        Conv1d(in_channels, hidden_channels, do_weightnorm=weightnorm_flag),
+        #nn.BatchNorm1d(hidden_channels),
         nn.LeakyReLU(inplace=True),
-        Conv1d(hidden_channels, hidden_channels),
+        Conv1d(hidden_channels, hidden_channels, do_weightnorm=weightnorm_flag),
+        #nn.BatchNorm1d(hidden_channels),
         nn.LeakyReLU(inplace=True),
         #nn.Dropout(p=0.10),
         Conv1dZeros(hidden_channels, out_channels)
@@ -380,10 +384,11 @@ def main():
     L = 1 # No. of Layers in Multi-Scale architecture
     actnorm_flag = True
     p_drop=0.0 # Dropout Rate
+    weightnorm_flag = True
     prior = distributions.MultivariateNormal(torch.zeros(n_IC), torch.eye(n_IC))
     flow = FlowModel_GLOW(n_IC, n_HC, K, L, prior, permutation='invconv',\
                           coupling='affine', actnorm_scale=1., lu_decomposition=False,\
-                          sq_factor=1, actnorm_flag=actnorm_flag, p_drop=p_drop)
+                          sq_factor=1, actnorm_flag=actnorm_flag, p_drop=p_drop, weightnorm_flag=weightnorm_flag)
 
     # Display the number of parameters to be trained
     total_num_params, total_num_trainable_params = count_params(flow)

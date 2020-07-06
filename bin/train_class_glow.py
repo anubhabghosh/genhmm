@@ -63,7 +63,7 @@ if __name__ == "__main__":
     # Convergence monitoring parameters
     tol = 1e-2 # Convg. Monitor tolerance
     verbose = True # Verbose flag is True
-    ncon_int = 4 # No. of consecutive iterations to be checked
+    ncon_int = 3 # No. of consecutive iterations to be checked
 
     # niter counts the number of em steps before saving a model checkpoint
     niter = options["Train"]["niter"]
@@ -77,6 +77,7 @@ if __name__ == "__main__":
         niter = niter + 10 # 10 iterations extra added for ensuring convergence in case of small batch sizes 
         options[network_type]["lr"] = options[network_type]["lr"] / 2 # Decrease Lr proportional to batchsize
         print("No. of samples considered:{}, batch_size:{}, num_training iterations (max):{}, lr:{}".format(len(l), bsize, niter, options[network_type]["lr"]))
+        print("Weight Normalization applied on Conv layers:{}".format(options[network_type]["weightnorm_flag"]))
     else:
         #bsize = bsize // 2 #NOTE: Try to reduce batch size here as well
         print("No. of samples considered:{}, batch_size:{}, num_training iterations (max):{}, lr:{}".format(len(l), bsize, niter, options[network_type]["lr"]))
@@ -91,10 +92,19 @@ if __name__ == "__main__":
     if classmap[str(int(iclass_str)-1)] == "sil":
         tol = 3e-2        
         ncon_int = 2
+        options[network_type]["weightnorm_flag"] = False # Setting weightnorm to purposefully false since it is proving to be unstable for convergence
+        print("Weight Normalization applied on Conv1D layers:{}".format(options[network_type]["weightnorm_flag"]))
+        #options[network_type]["lr"] = options[network_type]["lr"] / 2 # Decrease Lr proportional to batchsize
     elif classmap[str(int(iclass_str)-1)] == "ey" or classmap[str(int(iclass_str)-1)] == "ow" or classmap[str(int(iclass_str)-1)] == "k" or classmap[str(int(iclass_str)-1)] == "ih" or classmap[str(int(iclass_str)-1)] == "t" or classmap[str(int(iclass_str)-1)] == "aa" or classmap[str(int(iclass_str)-1)] == "z":
         #tol = 2.5e-2
-        tol = 2e-2 # Try to see what happens if this criterion is relaxed
+        #tol = 2e-2 # Try to see what happens if this criterion is relaxed
         ncon_int = 3
+        if classmap[str(int(iclass_str)-1)] == "ih":
+            tol = 2e-2
+            options[network_type]["weightnorm_flag"] = False # Setting weightnorm to purposefully false since it is proving to be unstable for convergence
+        print("Weight Normalization applied on Conv1D layers:{}".format(options[network_type]["weightnorm_flag"]))
+    else:
+        print("Weight Normalization applied on Conv1D layers:{}".format(options[network_type]["weightnorm_flag"]))
 
     # niter counts the number of em steps before saving a model checkpoint
     # niter = options["Train"]["niter"]

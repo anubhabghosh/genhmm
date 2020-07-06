@@ -129,7 +129,7 @@ class GenHMM(torch.nn.Module):
                  net_H=28, net_D=14, K=4, L=2, mask_type="cross", p_drop=0.25,
                  startprob_type="first", transmat_type="random upper triangular",
                  permutation="invconv", coupling="affine", actnorm_scale=1.0,
-                 lu_decomposition=False, sq_factor=1, actnorm_flag=True):
+                 lu_decomposition=False, sq_factor=1, actnorm_flag=True, weightnorm_flag=True):
         
         super(GenHMM, self).__init__()
 
@@ -152,7 +152,7 @@ class GenHMM(torch.nn.Module):
         # Initialize generative model networks
         self.init_gen(n_D=net_D, n_H=net_H, K=K, L=L, permutation=permutation, coupling=coupling, \
                       actnorm_scale = actnorm_scale, lu_decomposition = lu_decomposition, sq_factor = sq_factor, \
-                      actnorm_flag = actnorm_flag, p_drop=p_drop) # Initialise the HMM probabbility matrix
+                      actnorm_flag = actnorm_flag, p_drop=p_drop, weightnorm_flag=weightnorm_flag) # Initialise the HMM probabbility matrix
         
         self._update_old_networks() # Make a copy of the model to be used as Q_old or pre-existing model
         self.old_eval() # Evaluate the pre-existing model
@@ -207,7 +207,7 @@ class GenHMM(torch.nn.Module):
 
     def init_gen(self, n_D, n_H, K, L, permutation='invconv', coupling='affine',
                  actnorm_scale = 1.0, lu_decomposition = False, sq_factor = 1,
-                 actnorm_flag = True, p_drop=0):
+                 actnorm_flag = True, p_drop=0, weightnorm_flag=True):
         
         """
         Init HMM probabilistic model for GLOW model
@@ -248,7 +248,7 @@ class GenHMM(torch.nn.Module):
         # Init networks
         self.networks = [FlowModel_GLOW(n_D, n_H, K, L, prior, permutation, coupling,\
                                         actnorm_scale, lu_decomposition, sq_factor, \
-                                        actnorm_flag, p_drop)
+                                        actnorm_flag, p_drop, weightnorm_flag)
                                         
                                         for _ in range(self.n_prob_components*self.n_states)]
         total_num_params, total_num_trainable_params = count_params(self.networks[0])
@@ -261,7 +261,7 @@ class GenHMM(torch.nn.Module):
 
         self.old_networks = [FlowModel_GLOW(n_D, n_H, K, L, prior, permutation, coupling,\
                                         actnorm_scale, lu_decomposition, sq_factor, \
-                                        actnorm_flag, p_drop)
+                                        actnorm_flag, p_drop, weightnorm_flag)
                                         
                                         for _ in range(self.n_prob_components*self.n_states)]
         self.old_networks = np.array(self.old_networks).reshape(self.n_states, self.n_prob_components)

@@ -173,7 +173,7 @@ class Conv1d(nn.Conv1d):
 
     def __init__(self, in_channels, out_channels,
                  kernel_size=(1), stride=1, padding_type='SAME',
-                 do_weightnorm=False, do_actnorm=True,
+                 do_weightnorm=True, do_actnorm=True,
                  dilation=1, groups=1):
         """
         Wrapper of nn.Conv1d with weight normalization and activation normalization
@@ -209,6 +209,12 @@ class Conv1d(nn.Conv1d):
         :rtype: torch.Tensor
         """
         x = super().forward(x)
+        
+        if self.do_weight_norm:
+        # normalize N, H and W dims
+            x = F.normalize(x, p=2, dim=0)
+            x = F.normalize(x, p=2, dim=2)
+        
         if self.do_actnorm:
             x, _ = self.actnorm(x)
         return x

@@ -178,8 +178,8 @@ if __name__ == "__main__":
     tr_sample_complexity = compute_sample_complexity(tr_data_files) # vector containing values representing sample compleixty for training data
     #te_sample_complexity = compute_sample_complexity(te_data_files) # vector containing values representing sample complexity for test data
 
-    file1 = open("./log/metrics_class_all_2.log", "w+") # Opening the file
-    df_filename = "./log/metrics_class_all_2.json" # Define an excel file name for storing log results using dataframes
+    file1 = open("./log/metrics_class_all_train.log", "w+") # Opening the file
+    df_filename = "./log/metrics_class_all_train.json" # Define an excel file name for storing log results using dataframes
     correct_gmm = 0
     correct_nvp = 0
     correct_glow = 0
