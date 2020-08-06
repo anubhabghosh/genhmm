@@ -362,29 +362,30 @@ def NN(in_channels, hidden_channels, out_channels, weightnorm_flag):
     """
 def main():
 
-    np.random.seed(2)
-    torch.manual_seed(2)
+    # np.random.seed(2)
+    # torch.manual_seed(2)
     # Define the input dataset and convert it in the format X : (batchsize x no_of_samples x no_of_channels)
-    n_input_samples = 600
+    n_input_samples = 200
     X = datasets.make_moons(n_samples=n_input_samples, noise=.05)[0].astype(np.float32)
     X = torch.from_numpy(X)
-    #X = np.random.randn(100, 2)
-    #X = torch.FloatTensor(X)
-    if len(X.shape) == 2:
-        X = X.unsqueeze(dim=1).permute(0, 2, 1) # Insert the dimensionality for the n_samples and permute dims to make Nb x Nc x Ns
+    # X = np.random.randn(100, 2)
+    # X = torch.FloatTensor(X)
+    #if len(X.shape) == 2:
+    #    X = X.unsqueeze(dim=1).permute(0, 2, 1) # Insert the dimensionality for the n_samples and permute dims to make Nb x Nc x Ns
+    X = X.unsqueeze(dim=1)
     # Dimension of channel : input and hidden
     in_shape = X.size()
     n_IC = 2
-    if in_shape[1] != n_IC:
-        X = X.permute(0,2,1)
-    else:
-        pass
+    #if in_shape[1] != n_IC:
+    #    X = X.permute(0,2,1)
+    #else:
+    #    pass
     n_HC = 128
-    K = 3 # Depth of Flow
+    K = 8 # Depth of Flow
     L = 1 # No. of Layers in Multi-Scale architecture
     actnorm_flag = True
-    p_drop=0.0 # Dropout Rate
-    weightnorm_flag = True
+    p_drop = 0.0 # Dropout Rate
+    weightnorm_flag = False
     prior = distributions.MultivariateNormal(torch.zeros(n_IC), torch.eye(n_IC))
     flow = FlowModel_GLOW(n_IC, n_HC, K, L, prior, permutation='invconv',\
                           coupling='affine', actnorm_scale=1., lu_decomposition=False,\
@@ -398,7 +399,7 @@ def main():
     optimizer = torch.optim.Adam([p for p in flow.parameters() if p.requires_grad == True], lr=1e-4)
     
     N_iter = 4000
-    savedir = "./NormFlowModel/GLOW_Model/figures6_nsamples_LU" + str(n_input_samples) + "/"
+    savedir = "./NormFlowModel/GLOW_Model/figures_final_nsamples_LU_2" + str(n_input_samples) + "/"
     # Training the model
     start_time = datetime.now()
 
@@ -425,15 +426,15 @@ def main():
             optimizer.step()
 
             # Plotting the loss and iteratio details every 500 iterations
-            if t % 500 == 0 and t != 0:
+            if t % 100 == 0 and t != 0:
                 print("Iteration {}, loss : {}, Elapsed Time:{}".format(t, loss, abs((start_time - datetime.now()).total_seconds())))
                 #print("Iteration {}, regularization loss : {}, Elapsed Time:{}".format(t, regular_loss, abs((start_time - datetime.now()).total_seconds())))
                 start_time = datetime.now()
 
-            #### Plotting the results every 1000 iterations ####
+            #### Plotting the results every given number of iterations ####
 
-            if (t+1) % 1000 == 0:
-                plot_results(flow, X.detach().numpy(), t+1, savedir)
+            if (t+1) % 100 == 0:
+                plot_results(flow, X.detach(), t+1, savedir)
 
     return None
 

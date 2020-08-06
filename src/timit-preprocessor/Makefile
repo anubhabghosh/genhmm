@@ -24,7 +24,8 @@ endif
 
 
 #targets_= $(shell echo {train,test}.39.pkl)
-noise_targets_ = $(shell echo train.39.hfchannel.{10,15,20,25}dB.pkl)
+#noise_targets_ = $(shell echo test.39.white.{12,17,22,30}dB.pkl)
+noise_targets_ = $(shell echo test.39.white.5dB.pkl)
 
 targets= $(addprefix $(DATA_OUT)/,$(targets_)) $(addprefix $(DATA_OUT)/,$(noise_targets_))
 
@@ -32,8 +33,8 @@ interm=.data
 material=$(interm)/material
 processed=$(interm)/processed
 
-interm_files= $(shell echo $(material)/{train,test}.lbl) $(shell echo $(material)/train.hfchannel.{10,15,20,25}dB.lbl)
-
+#interm_files= $(shell echo $(material)/{train,test}.lbl) $(shell echo $(material)/test.white.{12,17,22,30}dB.lbl)
+interm_files= $(shell echo $(material)/{train,test}.lbl) $(shell echo $(material)/test.white.5dB.lbl)
 
 all: noise
 	

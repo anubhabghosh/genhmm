@@ -18,6 +18,7 @@ def plot_results(network, x, i, savedir):
 
     plt.figure()    
     # noisy_moons = dataset(n_samples=1000, noise=.05)[0].astype(np.float32)
+    x = x.permute(0,2,1).numpy()
     z = network.f(torch.from_numpy(x))[0].detach().numpy()
     plt.subplot(221)
     plt.scatter(z[:,0], z[:,1])
