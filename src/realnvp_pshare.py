@@ -191,6 +191,7 @@ class RealNVP_FlowNets(torch.nn.Module):
         self.s_nets_per_state = [torch.nn.ModuleList([net_s() for _ in range(len(masks))]) for _ in range(self.n_states)]
         self.t_nets = torch.nn.ModuleList([net_t() for _ in range(len(masks))]) # translational networks
         self.device = device
+        print("Device is:{}".format(self.device))
         self.masks = masks
         self.prior = prior
         self.use_tied_states = use_tied_states # flag to denote whether to use tied states or not
@@ -199,7 +200,7 @@ class RealNVP_FlowNets(torch.nn.Module):
         if use_tied_states == True:
 
             # Initialise the networks for each component and state
-            self.networks = [RealNVP(self.masks, self.prior, tied_states=self.use_tied_states, st_nets=st_nets, t_nets=t_nets)
+            self.networks = [RealNVP(self.masks, self.prior, tied_states=self.use_tied_states, st_nets=net_st, t_nets=net_t)
                          for _ in range(self.n_prob_components*self.n_states)]
 
             # Reshape the new networks in a n_states x n_prob_components array
@@ -229,7 +230,8 @@ class RealNVP_FlowNets(torch.nn.Module):
         n_samples = x.shape[1] # Obtain the actual number of samples
 
         # Initialise an output tensor that stores the log-likelihood p(x|s) for each state s
-        llh = torch.zeros((batch_size, n_samples, self.n_states)).to(self.device)
+        print(self.device)
+        llh = torch.zeros(batch_size, n_samples, self.n_states).to(self.device)
 
         # Initialise an output tensor that stores the log-likelihood p(x|s,k) for each mixture component k and each state s
         local_llh_sk = torch.zeros((batch_size, n_samples, self.n_states, self.n_prob_components)).to(self.device)
@@ -274,5 +276,5 @@ class RealNVP_FlowNets(torch.nn.Module):
                 # NOTE: The logsumexp trick is applied along the dimension corresponding to the
                 # n_prob_components
                 llh[:, :, s] = torch.logsumexp((logPIk_s[s].reshape(1, 1, self.n_prob_components) + ll).detach(), dim=2)
-
+        
         return llh, local_llh_sk
