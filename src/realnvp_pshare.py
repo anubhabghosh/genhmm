@@ -126,9 +126,9 @@ class RealNVP(torch.nn.Module):
         """
         self.s_shared = s_shared
         log_det_J, z = x.new_zeros((x.shape[0], x.shape[1])), x
-        for i in reversed(range(len(self.s))):
-            
-            if self.s_shared == None:
+
+        if self.s_shared == None:
+            for i in reversed(range(len(self.s))):    
                 z_id, z_s = self._chunk(z, self.mask[i])
                 st = self.s[i](z_id)
                 s, t = st.chunk(2,dim=2)
@@ -137,7 +137,8 @@ class RealNVP(torch.nn.Module):
                 z_s = (z_s + t) * exp_s
                 z =  torch.cat((z_id, z_s), dim=2)
                 log_det_J += torch.sum(s, dim=2)
-            else:
+        else:
+            for i in reversed(range(len(self.t))):
                 z_id, z_s = self._chunk(z, self.mask[i])
                 #st = self.s_shared[i](z_id)
                 #s, t = st.chunk(2,dim=2)
@@ -230,7 +231,7 @@ class RealNVP_FlowNets(torch.nn.Module):
         n_samples = x.shape[1] # Obtain the actual number of samples
 
         # Initialise an output tensor that stores the log-likelihood p(x|s) for each state s
-        print(self.device)
+        #print(self.device)
         llh = torch.zeros(batch_size, n_samples, self.n_states).to(self.device)
 
         # Initialise an output tensor that stores the log-likelihood p(x|s,k) for each mixture component k and each state s
@@ -256,7 +257,7 @@ class RealNVP_FlowNets(torch.nn.Module):
                 # Implements the equation using the logsumexp trick:
                 # - log p(x|s) = log \sum_{k=1}^{K_g} \pi_{s,k} p(x|s,k)
                 # The logsumexp trick is applied along the dimension corresponding to the n_prob_components
-                llh[:, :, s] = torch.logsumexp((self.logPIk_s[s].reshape(1, 1, self.n_prob_components) + ll).detach(), dim=2)
+                llh[:, :, s] = torch.logsumexp((logPIk_s[s].reshape(1, 1, self.n_prob_components) + ll).detach(), dim=2)
             
             else:
 

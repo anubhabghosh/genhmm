@@ -293,7 +293,9 @@ class GenHMM(torch.nn.Module):
             
             for s in range(self.n_states):
                 s_net = self.gens.s_nets_per_state[s]
-                learnable_params_snet_shared = sum([p for p in s_net.parameters() if p.requires_grad==True],learnable_params_snet_shared)
+                learnable_params_snet_shared.append([p for p in s_net.parameters() if p.requires_grad==True])
+            
+            learnable_params_snet_shared = sum(learnable_params_snet_shared, [])
 
             learnable_params_total = learnable_params + learnable_params_snet_shared
             self.optimizer = torch.optim.Adam(learnable_params_total, lr=self.lr)
