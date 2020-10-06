@@ -2,7 +2,7 @@
     "Mul_gpu": true,
     "Train":
     {
-        "niter": 4,
+        "niter": 60,
         "batch_size": 128,
         "eval_batch_size": 128,
         "n_states_min": 3,
@@ -26,29 +26,30 @@
     "GLOW_Net":
     {
         "n_states":3,
-        "n_prob_components":3,
+        "n_prob_components":1,
         "em_skip":5,
         "device":"cpu",
-        "lr": 0.0004,
-        "net_H": 48,
+        "lr": 0.0001,
+        "net_H": 40,
         "net_D": 40,
         "p_drop":0,
-        "start_prob_type":"first",
+        "startprob_type":"first",
         "transmat_type":"triangular",
-        "K":4 ,
+        "K":12,
         "L":1,
         "permutation":"invconv",
         "coupling":"affine",
         "actnorm_scale":1.0,
         "lu_decomposition":false,
         "sq_factor":1,
-        "actnorm_flag":true    
+        "actnorm_flag":true,
+    	"weightnorm_flag":true	
     },
     "GMM":
     {
         "n_states": 3,
         "n_states_min": 3,
         "n_states_max": 5,
-        "n_prob_components": 3
+        "n_prob_components": 20
     }
 }

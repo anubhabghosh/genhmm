@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 class Rescale(torch.nn.Module):
     """Per-channel rescaling. Need a proper `nn.Module` so we can wrap it
@@ -187,13 +188,13 @@ class RealNVP_FlowNets(torch.nn.Module):
         self.n_prob_components = n_prob_components # Number of mixture components
         #self.s_nets = torch.nn.ModuleList([net_s() for _ in range(len(mask))]) # scaling networks (in case one network is used for every state and every mixture component)
         # Creating a list of s_nets for every state, which is to be shared between the mixture components per state
-        self.s_nets_per_state = [torch.nn.ModuleList([net_s() for _ in range(len(mask))]) for _ in range(self.n_states)]
-        self.t_nets = torch.nn.ModuleList([net_t() for _ in range(len(mask))]) # translational networks
+        self.s_nets_per_state = [torch.nn.ModuleList([net_s() for _ in range(len(masks))]) for _ in range(self.n_states)]
+        self.t_nets = torch.nn.ModuleList([net_t() for _ in range(len(masks))]) # translational networks
         self.device = device
         self.masks = masks
         self.prior = prior
         self.use_tied_states = use_tied_states # flag to denote whether to use tied states or not
-        self.init_mixture() # Initialise the mixture weights
+        #self.init_mixture() # Initialise the mixture weights
 
         if use_tied_states == True:
 

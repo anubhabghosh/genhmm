@@ -278,11 +278,11 @@ class GenHMM(torch.nn.Module):
         self.logPIk_s = self.pi.log()
 
         self.gens = RealNVP_FlowNets(self.n_states, self.n_prob_components, net_s=s_net, 
-                                    net_t=t_net, net_st=st_net, mask=masks, prior=prior, 
+                                    net_t=t_net, net_st=st_net, masks=masks, prior=prior, 
                                     device=self.device, use_tied_states=self.tied_states)
 
         self.old_gens = RealNVP_FlowNets(self.n_states, self.n_prob_components, net_s=s_net, 
-                                    net_t=t_net, net_st=st_net, mask=masks, prior=prior, 
+                                    net_t=t_net, net_st=st_net, masks=masks, prior=prior, 
                                     device=self.device, use_tied_states=self.tied_states)
 
         # Initialise the optimzier with the parameters
@@ -294,7 +294,7 @@ class GenHMM(torch.nn.Module):
                 s_net = self.gens.s_nets_per_state[s]
                 self.optimizer.add_param_group(
                     {'param_s_shared_{}'.format(s+1):
-                    [[p for p in s_net.parameters() if p.requires_grad==True]})
+                    [p for p in s_net.parameters() if p.requires_grad==True]})
 
         return self
 
