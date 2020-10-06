@@ -149,9 +149,9 @@ class GenHMM(torch.nn.Module):
         self.init_gen(H=net_H, D=net_D, nchain=net_nchain,
                       mask_type=mask_type, p_drop=p_drop)
 
-        #NOTE: To be fixed once new Network class is required
+        
         self._update_old_networks()
-        #NOTE: To be fixed once new Network class is required
+        
         self.old_eval()
 
         self.update_HMM = False
@@ -285,16 +285,23 @@ class GenHMM(torch.nn.Module):
                                     net_t=t_net, net_st=st_net, masks=masks, prior=prior, 
                                     device=self.device, use_tied_states=self.tied_states)
 
-        # Initialise the optimzier with the parameters
-        self.optimizer = torch.optim.Adam(
-            sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], []), lr=self.lr)
+        #TODO: Initialise the optimzier with the parameters
         
         if self.tied_states == True:
+            learnable_params = sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], [])
+            learnable_params_snet_shared = []
+            
             for s in range(self.n_states):
                 s_net = self.gens.s_nets_per_state[s]
-                self.optimizer.add_param_group(
-                    {'param_s_shared_{}'.format(s+1):
-                    [p for p in s_net.parameters() if p.requires_grad==True]})
+                learnable_params_snet_shared = sum([p for p in s_net.parameters() if p.requires_grad==True],learnable_params_snet_shared)
+
+            learnable_params_total = learnable_params + learnable_params_snet_shared
+            self.optimizer = torch.optim.Adam(learnable_params_total, lr=self.lr)
+
+        else:
+            
+            self.optimizer = torch.optim.Adam(
+            sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], []), lr=self.lr)
 
         return self
 
@@ -333,12 +340,12 @@ class GenHMM(torch.nn.Module):
 
     def pushto(self, device):
         """ Push the networks 
-
+        ----
         Args:
-            device ([type]): [description]
+            device ([str]): device to push the networks to 'cpu' or 'cuda:0'
 
         Returns:
-            [type]: [description]
+            self : same object of the class
         """
 
         if self.tied_states == False:
@@ -387,6 +394,8 @@ class GenHMM(torch.nn.Module):
         self.pi = self.pi.to(device) # Assign pi to the device
         self.logPIk_s = self.logPIk_s.to(device) # Assign logPIk_s (\pi_{k,s}) to the device
         self.device = device # Assign device
+        self.gens.device = device
+        self.old_gens.device = device
         return self
 
     def old_eval(self):
