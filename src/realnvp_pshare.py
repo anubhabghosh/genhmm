@@ -229,10 +229,10 @@ class RealNVP_FlowNets(torch.nn.Module):
         n_samples = x.shape[1] # Obtain the actual number of samples
 
         # Initialise an output tensor that stores the log-likelihood p(x|s) for each state s
-        llh = torch.zeros((batch_size, n_samples, self.n_states))
+        llh = torch.zeros((batch_size, n_samples, self.n_states)).to(self.device)
 
         # Initialise an output tensor that stores the log-likelihood p(x|s,k) for each mixture component k and each state s
-        local_llh_sk = torch.zeros((batch_size, n_samples, self.n_states, self.n_prob_components))
+        local_llh_sk = torch.zeros((batch_size, n_samples, self.n_states, self.n_prob_components)).to(self.device)
 
         for s in range(self.n_states):
             
