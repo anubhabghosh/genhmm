@@ -63,7 +63,10 @@ if __name__ == "__main__":
 
     # niter counts the number of em steps before saving a model checkpoint
     niter = options["Train"]["niter"]
-
+    
+    if iclass_str == '39': # Special case for the <sil> class
+        tol = 1e-2
+        ncon_int = 2
     '''
     # NOTE: Poor fix for <sil> class and some other problematic classes 
     if iclass_str == '39':

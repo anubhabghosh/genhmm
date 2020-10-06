@@ -169,12 +169,12 @@ def compute_cfmetrics(cf_matrix, sample_complexity, classmap, phonemes_type_dict
 
     cf_metrics = np.zeros((nclasses, 4))
     file1 = open("./log/cfmetrics_{}.log".format(model_name), "w+")
-    accuracy_avg = 0
+    #accuracy_avg = 0
     precision_avg = 0
     recall_avg = 0
     F1_avg = 0
     metrics = [] # Create a blank list to append lists for creating a dataframe
-    metrics_columns = ['Phoneme', 'Type', 'Accuracy', 'Precision', 'Recall', 'F1_score'] # Predefine the dataframe column headers
+    metrics_columns = ['Phoneme', 'Type', 'Precision', 'Recall', 'F1_score'] # Predefine the dataframe column headers
 
     for i in range(cf_matrix.shape[0]):
 
@@ -192,29 +192,29 @@ def compute_cfmetrics(cf_matrix, sample_complexity, classmap, phonemes_type_dict
         
         precision_iclass = tp_iclass / (tp_iclass + fp_iclass) # Get the precision
         recall_iclass = tp_iclass / (tp_iclass + fn_iclass) # Get the recall
-        acc_iclass = tp_iclass / np.sum(cf_matrix[i,:]) # Get the accuracy
+        #acc_iclass = tp_iclass / np.sum(cf_matrix[i,:]) # Get the accuracy
         if precision_iclass != 0 or recall_iclass != 0:
             F1_iclass = 2 * precision_iclass * recall_iclass / (precision_iclass + recall_iclass)
         else:
             F1_iclass = 0 # In case of undefined values
 
-        metrics.append([iclass_phn, iclass_phn_type, acc_iclass, precision_iclass, recall_iclass, F1_iclass])
+        metrics.append([iclass_phn, iclass_phn_type, precision_iclass, recall_iclass, F1_iclass])
         #print("Class:{}\tAccuracy:{}\tPrecision:{}\tRecall:{}\tF1_score:{}".format(i+1, acc_iclass, precision_iclass, recall_iclass, F1_iclass)) 
-        file1.write("Class:{}\tPhn:{}\tPhn_type:{}\tAccuracy:{:.3f}\tPrecision:{:.3f}\tRecall:{:.3f}\tF1_score:{:.3f}\n".format(i+1, iclass_phn, 
+        file1.write("Class:{}\t Phn:{} \t Phn_type:{} \t Precision:{:.3f}\t\tRecall:{:.3f}\tF1_score:{:.3f}\n".format(i+1, iclass_phn, 
                                                                                                                 iclass_phn_type, 
-                                                                                                                acc_iclass, precision_iclass, 
+                                                                                                                precision_iclass, 
                                                                                                                 recall_iclass, F1_iclass))
         
-        accuracy_avg += sample_complexity[i] * acc_iclass
+        #accuracy_avg += sample_complexity[i] * acc_iclass
         precision_avg += sample_complexity[i] * precision_iclass
         recall_avg += sample_complexity[i] * recall_iclass
         F1_avg += sample_complexity[i] * F1_iclass
 
-    file1.write("-----------------------------------------------------------------------------------------------------------------------------------")
-    file1.write("Weighted Accuracy for {}-hmm model:{:.3f} \n".format(model_name, accuracy_avg))
-    file1.write("Weighted Precision for {}-hmm model:{:.3f} \n".format(model_name, precision_avg))
-    file1.write("Weighted Recall for {}-hmm model:{:.3f} \n".format(model_name, recall_avg))
-    file1.write("Weighted F1 for {}-hmm model:{:.3f} \n".format(model_name, F1_avg))
+    file1.write("-----------------------------------------------------------------------------------------------------------------------------------\n")
+    #file1.write("Weighted Accuracy for {}-hmm model:{:.3f} \n".format(model_name, accuracy_avg))
+    file1.write("Weighted Precision for {}-hmm model:{:.3f} \n".format(model_name, precision_avg / np.sum(sample_complexity)))
+    file1.write("Weighted Recall for {}-hmm model:{:.3f} \n".format(model_name, recall_avg / np.sum(sample_complexity)))
+    file1.write("Weighted F1 for {}-hmm model:{:.3f} \n".format(model_name, F1_avg / np.sum(sample_complexity)))
     
     df_cfmetrics = pd.DataFrame(metrics, columns=metrics_columns)
     df_cfmetrics.to_json("./log/cfmetrics_{}.json".format(model_name), orient='split')
@@ -455,10 +455,10 @@ if __name__ == "__main__":
     savemat("./log/gmm_cfmatrix.mat", gmm_cf_dict)
 
     nvp_cf_dict = compute_cfmetrics(cf_matrix_nvp, sample_complexity, classmap, phonemes_type_dict, "nvp")
-    savemat("./log/nvp_cfmatrix.mat", gmm_cf_dict)
+    savemat("./log/nvp_cfmatrix.mat", nvp_cf_dict)
 
     glow_cf_dict = compute_cfmetrics(cf_matrix_glow, sample_complexity, classmap, phonemes_type_dict, "glow")
-    savemat("./log/glow_cfmatrix.mat", gmm_cf_dict)
+    savemat("./log/glow_cfmatrix.mat", glow_cf_dict)
 
     voted_cf_dict = compute_cfmetrics(cf_matrix_voted, sample_complexity, classmap, phonemes_type_dict, "voted")
     savemat("./log/voted_cfmatrix.mat", voted_cf_dict)

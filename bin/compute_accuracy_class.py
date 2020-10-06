@@ -4,7 +4,8 @@ import json
 import torch
 from parse import parse
 import pickle as pkl
-from gm_hmm.src.genHMM import load_model
+#from gm_hmm.src.genHMM import load_model
+from gm_hmm.src.genHMM_GLOW import load_model
 from gm_hmm.src.utils import append_class, accuracy_fun, accuracy_fun_torch, divide, parse_, get_freer_gpu
 from functools import partial
 import time
