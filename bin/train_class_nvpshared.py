@@ -2,7 +2,7 @@ import os
 import sys
 from parse import parse
 import pickle as pkl
-from gm_hmm.src.genHMM import GenHMM, save_model, load_model, ConvgMonitor
+from gm_hmm.src.NVPHMM_modified import GenHMM, save_model, load_model, ConvgMonitor
 from gm_hmm.src.utils import pad_data, TheDataset, get_freer_gpu
 import torch
 from torch.utils.data import DataLoader
@@ -11,7 +11,7 @@ import numpy as np
 import time
 
 if __name__ == "__main__":
-    usage = "python bin/train_class_gen.py data/train.39.pkl models/epoch1_class1.mdlc default.json"
+    usage = "python bin/train_class_nvpshared.py data/train.39.pkl models/epoch1_class1.mdlc default.json"
     if len(sys.argv) < 3 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(usage)
         sys.exit(1)
@@ -62,10 +62,7 @@ if __name__ == "__main__":
 
     # niter counts the number of em steps before saving a model checkpoint
     niter = options["Train"]["niter"]
-    
-    if iclass_str == '39': # Special case for the <sil> class
-        tol = 1e-2
-        ncon_int = 2
+
     '''
     # NOTE: Poor fix for <sil> class and some other problematic classes 
     if iclass_str == '39':
