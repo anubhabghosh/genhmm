@@ -305,7 +305,44 @@ class GenHMM(torch.nn.Module):
             self.optimizer = torch.optim.Adam(
             sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], []), lr=self.lr)
 
+        # Displaying the count of parameters in the model (gens.networks)
+        total_num_trainable_params = self.count_params()
+        print("The total number of trainable params:{}".format(total_num_trainable_params))
+
         return self
+
+    def count_params(self):
+        """
+        Counts two types of parameters:
+        ----
+        Args:
+        - networks(array of 'Flow' objects): A numpy array of flow networks which have to be used
+        - shared_nets (list of nets): A python list of networks that are to be shared
+
+        Returns:
+        - total_num_trainable_params: Total no. of parameters in the model which are trainable 
+        """
+        if self.tied_states == False:
+        
+            learnable_params = sum([[p.numel() for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], [])
+            total_num_trainable_params = sum(learnable_params)
+            #total_num_params = sum(sum([[p.numel() for p in flow.parameters()] for flow in self.gens.networks.reshape(-1).tolist()], []))
+
+        elif self.tied_states == True:
+            
+            learnable_params = sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], [])
+            learnable_params_snet_shared = []
+            
+            for s in range(self.n_states):
+                s_net = self.gens.s_nets_per_state[s]
+                learnable_params_snet_shared.append([p for p in s_net.parameters() if p.requires_grad==True])
+            
+            learnable_params_snet_shared = sum(learnable_params_snet_shared, [])
+
+            learnable_params_total = learnable_params + learnable_params_snet_shared
+            total_num_trainable_params = sum(learnable_params_total)
+
+        return total_num_trainable_params
 
     def _update_old_networks(self):
         """ This function takes the 'self' object and copies the parameters and buffers from the 
