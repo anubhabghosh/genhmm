@@ -75,6 +75,9 @@ if __name__ == "__main__":
     # niter counts the number of em steps before saving a model checkpoint
     niter = options["Train"]["niter"]
     
+    print("No. of samples considered:{}, batch_size:{}, num_training iterations (max):{}, lr:{}".format(len(l), options["Train"]["batch_size"], niter, options[network_type]["lr"]))
+    print("Using Tied states:{}".format(options[network_type]["tied_states"]))
+
     #  Load or create model
     if epoch_str == '1':
     #    mdl = GenHMM(**options["Net"])

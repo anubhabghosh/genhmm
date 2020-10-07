@@ -72,6 +72,8 @@ class RealNVP(torch.nn.Module):
         self.mask = torch.nn.Parameter(mask, requires_grad=False)
         if tied_states is not True:
             self.s = torch.nn.ModuleList([st_nets() for _ in range(len(mask))])
+            #self.t = torch.nn.ModuleList([t_nets() for _ in range(len(mask))])
+            #self.s = torch.nn.ModuleList([t_nets() for _ in range(len(mask))])
             self.rescale = torch.nn.utils.weight_norm(Rescale(int(self.mask.size(1)/2)))
         else:
             self.t = torch.nn.ModuleList([t_nets() for _ in range(len(mask))])
@@ -132,6 +134,8 @@ class RealNVP(torch.nn.Module):
                 z_id, z_s = self._chunk(z, self.mask[i])
                 st = self.s[i](z_id)
                 s, t = st.chunk(2,dim=2)
+                #s = self.s[i](z_id)
+                #t = self.t[i](z_id)
                 s = self.rescale(torch.tanh(s))
                 exp_s = s.exp()
                 z_s = (z_s + t) * exp_s
@@ -190,6 +194,8 @@ class RealNVP_FlowNets(torch.nn.Module):
         #self.s_nets = torch.nn.ModuleList([net_s() for _ in range(len(mask))]) # scaling networks (in case one network is used for every state and every mixture component)
         # Creating a list of s_nets for every state, which is to be shared between the mixture components per state
         self.s_nets_per_state = [torch.nn.ModuleList([net_s() for _ in range(len(masks))]) for _ in range(self.n_states)]
+        #self.s_nets_per_component = [torch.nn.ModuleList([net_s() for _ in range(len(masks))]) for _ in range(self.n_prob_components)]
+        #self.s_nets_per_state = torch.nn.ModuleList([net_s() for _ in range(len(masks))])
         self.t_nets = torch.nn.ModuleList([net_t() for _ in range(len(masks))]) # translational networks
         self.device = device
         print("Device is:{}".format(self.device))
@@ -211,7 +217,7 @@ class RealNVP_FlowNets(torch.nn.Module):
         else:
             
             # Initialise the networks for each component and state
-            self.networks = [RealNVP(self.masks, self.prior, tied_states=False, st_nets=net_st)
+            self.networks = [RealNVP(self.masks, self.prior, tied_states=False, st_nets=net_st, t_nets=net_t)
                          for _ in range(self.n_prob_components*self.n_states)]
 
             # Reshape the new networks in a n_states x n_prob_components array
@@ -245,7 +251,10 @@ class RealNVP_FlowNets(torch.nn.Module):
                 # Except that here each mixture component uses the same scaling network
                 llh_sk = [self.networks[s,k].log_prob(x, x_mask, s_shared=self.s_nets_per_state[s]) / x.size(2) 
                             for k in range(self.n_prob_components)]
-
+                
+                #llh_sk = [self.networks[s,k].log_prob(x, x_mask, s_shared=self.s_nets_per_component[k]) / x.size(2)
+                #                                    for k in range(self.n_prob_components)]
+                
                 # torch.stack() concatenates the seqeunce of llh_sk tensors along a new dimension (which is by default 0)
                 # hence, when the resulting tensor is added it has be permuted so that the resulting shape
                 # is (batch_size, n_samples, ...)
