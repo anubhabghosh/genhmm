@@ -69,6 +69,7 @@ class RealNVP(torch.nn.Module):
         super(RealNVP, self).__init__()
         
         self.prior = prior
+        self.reglambda = torch.nn.Parameter(torch.rand([1,1]), requires_grad=True)
         self.mask = torch.nn.Parameter(mask, requires_grad=False)
         if tied_states is not True:
             self.s = torch.nn.ModuleList([st_nets() for _ in range(len(mask))])
@@ -140,7 +141,7 @@ class RealNVP(torch.nn.Module):
                 exp_s = s.exp()
                 z_s = (z_s + t) * exp_s
                 z =  torch.cat((z_id, z_s), dim=2)
-                log_det_J += torch.sum(s, dim=2)
+                log_det_J += torch.sum(s, dim=2) - self.reglambda * torch.norm(z, dim=2)
         else:
             for i in reversed(range(len(self.t))):
                 z_id, z_s = self._chunk(z, self.mask[i])
