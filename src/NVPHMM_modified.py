@@ -291,13 +291,13 @@ class GenHMM(torch.nn.Module):
             learnable_params = sum([[p for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], [])
             learnable_params_snet_shared = []
             
-            for s in range(self.n_states):
-                s_net = self.gens.s_nets_per_state[s]
-                learnable_params_snet_shared.append([p for p in s_net.parameters() if p.requires_grad==True])
-            
-            #for k in range(self.n_prob_components):
-            #    s_net = self.gens.s_nets_per_component[k]
+            #for s in range(self.n_states):
+            #    s_net = self.gens.s_nets_per_state[s]
             #    learnable_params_snet_shared.append([p for p in s_net.parameters() if p.requires_grad==True])
+            
+            for k in range(self.n_prob_components):
+                s_net = self.gens.s_nets_per_component[k]
+                learnable_params_snet_shared.append([p for p in s_net.parameters() if p.requires_grad==True])
 
             learnable_params_snet_shared = sum(learnable_params_snet_shared, [])
 
@@ -337,13 +337,13 @@ class GenHMM(torch.nn.Module):
             learnable_params = sum([[p.numel() for p in flow.parameters() if p.requires_grad == True] for flow in self.gens.networks.reshape(-1).tolist()], [])
             learnable_params_snet_shared = []
             
-            for s in range(self.n_states):
-                s_net = self.gens.s_nets_per_state[s]
-                learnable_params_snet_shared.append([p.numel() for p in s_net.parameters() if p.requires_grad==True])
-            
-            #for k in range(self.n_prob_components):
-            #    s_net = self.gens.s_nets_per_component[k]
+            #for s in range(self.n_states):
+            #    s_net = self.gens.s_nets_per_state[s]
             #    learnable_params_snet_shared.append([p.numel() for p in s_net.parameters() if p.requires_grad==True])
+            
+            for k in range(self.n_prob_components):
+                s_net = self.gens.s_nets_per_component[k]
+                learnable_params_snet_shared.append([p.numel() for p in s_net.parameters() if p.requires_grad==True])
 
             learnable_params_snet_shared = sum(learnable_params_snet_shared, [])
 
@@ -416,8 +416,8 @@ class GenHMM(torch.nn.Module):
             for s in range(self.n_states):
                 
                 # Push the shared s_nets_per_state of the old and new network to the device
-                self.gens.s_nets_per_state[s].to(device)
-                self.old_gens.s_nets_per_state[s].to(device)
+                #self.gens.s_nets_per_state[s].to(device)
+                #self.old_gens.s_nets_per_state[s].to(device)
 
                 # Then push the networks as it is to the device (here the 'networks' contain only the t() network)
                 # as the s() network should be shared and only passed separately during the llh computation
@@ -435,11 +435,11 @@ class GenHMM(torch.nn.Module):
                     self.old_gens.networks[s, k].prior = type(p)(p.loc.to(device),
                                                         p.covariance_matrix.to(device))
         
-            #for k in range(self.n_prob_components):
+            for k in range(self.n_prob_components):
                 
                 # Push the shared s_nets_per_state of the old and new network to the device
-                #self.gens.s_nets_per_component[k].to(device)
-                #self.old_gens.s_nets_per_component[k].to(device)
+                self.gens.s_nets_per_component[k].to(device)
+                self.old_gens.s_nets_per_component[k].to(device)
 
         # Assign HMM variables to the device for updation
         self.startprob_ = self.startprob_.to(device) # Assign startprob to the device
