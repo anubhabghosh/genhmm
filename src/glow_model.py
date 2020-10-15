@@ -340,7 +340,15 @@ def NN(in_channels, hidden_channels, out_channels, weightnorm_flag):
     :return: desired convolution block
     :rtype: nn.Module
     """
-    
+    return nn.Sequential(
+        nn.utils.weight_norm(Conv1d(in_channels, hidden_channels, do_weightnorm=weightnorm_flag), "weight"),
+        nn.LeakyReLU(inplace=True),
+        nn.utils.weight_norm(Conv1d(hidden_channels, hidden_channels, do_weightnorm=weightnorm_flag),"weight"),
+        nn.LeakyReLU(inplace=True),
+        #nn.Dropout(p=0.10),
+        Conv1dZeros(hidden_channels, out_channels)
+    )
+    '''
     return nn.Sequential(
         Conv1d(in_channels, hidden_channels, do_weightnorm=weightnorm_flag),
         #nn.BatchNorm1d(hidden_channels),
@@ -351,6 +359,7 @@ def NN(in_channels, hidden_channels, out_channels, weightnorm_flag):
         #nn.Dropout(p=0.10),
         Conv1dZeros(hidden_channels, out_channels)
     )
+    '''
     """
     return nn.Sequential(
         nn.Linear(in_channels, hidden_channels),
@@ -399,7 +408,7 @@ def main():
     optimizer = torch.optim.Adam([p for p in flow.parameters() if p.requires_grad == True], lr=1e-4)
     
     N_iter = 4000
-    savedir = "./NormFlowModel/GLOW_Model/figures_final_nsamples_LU_2" + str(n_input_samples) + "/"
+    savedir = "./NormFlowModel/GLOW_Model/figures_final_nsamples_LU_WN" + str(n_input_samples) + "/"
     # Training the model
     start_time = datetime.now()
 
@@ -426,14 +435,14 @@ def main():
             optimizer.step()
 
             # Plotting the loss and iteratio details every 500 iterations
-            if t % 100 == 0 and t != 0:
+            if t % 500 == 0 and t != 0:
                 print("Iteration {}, loss : {}, Elapsed Time:{}".format(t, loss, abs((start_time - datetime.now()).total_seconds())))
                 #print("Iteration {}, regularization loss : {}, Elapsed Time:{}".format(t, regular_loss, abs((start_time - datetime.now()).total_seconds())))
                 start_time = datetime.now()
 
             #### Plotting the results every given number of iterations ####
 
-            if (t+1) % 100 == 0:
+            if (t+1) % 500 == 0:
                 plot_results(flow, X.detach(), t+1, savedir)
 
     return None
