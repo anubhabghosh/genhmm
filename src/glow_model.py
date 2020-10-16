@@ -16,6 +16,21 @@ from gm_hmm.src.plot_functions import plot_results
 from torch.autograd import Function, Variable, detect_anomaly
 from datetime import datetime
 
+class Rescale(torch.nn.Module):
+    """Per-channel rescaling. Need a proper `nn.Module` so we can wrap it
+    with `torch.nn.utils.weight_norm`.
+    Args:
+        num_channels (int): Number of channels in the input.
+    """
+    def __init__(self, num_channels):
+        super(Rescale, self).__init__()
+        self.weight = torch.nn.Parameter(torch.ones(1, num_channels, 1))
+
+    def forward(self, x):
+        x = self.weight * x
+        x = torch.nn.utils.weight_norm(x)
+        return x
+
 # This class defines the attributes and functions necessary to simulate one step of flow
 class FlowStep(nn.Module):
     flow_permutation_list = ['invconv', 'reverse', 'shuffle']
@@ -91,6 +106,7 @@ class FlowStep(nn.Module):
             self.NN = NN(in_channels // 2, hidden_channels, in_channels // 2, weightnorm_flag)
         else:
             self.NN = NN(in_channels // 2, hidden_channels, in_channels, weightnorm_flag)
+            self.rescale = Rescale(in_channels // 2)
 
     def normal_flow(self, x, logdet=None):
         """
@@ -125,7 +141,8 @@ class FlowStep(nn.Module):
         else:
             h = self.NN(z1)
             shift, scale = split_channel(h, 'cross')
-            scale = torch.sigmoid(scale + 2.)
+            scale = torch.sigmoid(self.rescale(scale) + 2.)
+            #scale = torch.sigmoid(scale + 2.)
             #scale = torch.exp(scale)
             z2 += shift
             z2 *= scale
@@ -155,7 +172,8 @@ class FlowStep(nn.Module):
         else:
             h = self.NN(x1)
             shift, scale = split_channel(h, 'cross')
-            scale = torch.sigmoid(scale + 2.)
+            scale = torch.sigmoid(self.rescale(scale) + 2.)
+            #scale = torch.sigmoid(scale + 2.)
             #scale = torch.exp(scale)
             x2 /= scale
             x2 -= shift
