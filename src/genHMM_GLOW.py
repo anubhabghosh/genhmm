@@ -31,13 +31,18 @@ class ConvgMonitor(ConvergenceMonitor):
 
         if self.verbose:
             delta = logprob -  self.history[-1] if self.history else np.nan
+            #if self.history:
             if self.history:
+                #if self.history[-1] < 0 and logprob <= 0:
                 delta = torch.abs(delta)
                 delta_rel = delta / torch.abs(self.history[-1])
+                self.delta = delta
+                self.delta_rel = delta_rel
             else:
                 delta_rel = np.nan
-            self.delta = delta
-            self.delta_rel = delta_rel
+                self.delta = delta
+                self.delta_rel = delta_rel
+            
             message = self._template.format(iter=self.iter + 1,
                                             logprob=logprob,
                                             delta=self.delta_rel)
@@ -49,7 +54,7 @@ class ConvgMonitor(ConvergenceMonitor):
 
     @property
     def converged(self):
-        if len(self.history) == 2:
+        if len(self.history) == 2 and self.history[-1] < 0:
             return self.delta_rel <= self.tol
             #return self.delta <= self.tol
 

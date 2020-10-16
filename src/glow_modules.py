@@ -192,8 +192,9 @@ class Conv1d(nn.Conv1d):
                          bias=(not do_actnorm))
         self.do_weight_norm = do_weightnorm
         self.do_actnorm = do_actnorm
-
-        self.weight.data.normal_(mean=0.0, std=0.05)
+        
+        nn.init.xavier_normal_(self.weight)
+        #self.weight.data.normal_(mean=0.0, std=0.05)
         if self.do_actnorm:
             self.actnorm = ActNorm(out_channels)
         else:
