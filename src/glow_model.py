@@ -28,7 +28,7 @@ class Rescale(torch.nn.Module):
 
     def forward(self, x):
         x = self.weight * x
-        x = torch.nn.utils.weight_norm(x)
+        #x = torch.nn.utils.weight_norm(x)
         return x
 
 # This class defines the attributes and functions necessary to simulate one step of flow
@@ -106,7 +106,7 @@ class FlowStep(nn.Module):
             self.NN = NN(in_channels // 2, hidden_channels, in_channels // 2, weightnorm_flag)
         else:
             self.NN = NN(in_channels // 2, hidden_channels, in_channels, weightnorm_flag)
-            self.rescale = Rescale(in_channels // 2)
+            self.rescale = torch.nn.utils.weight_norm(Rescale(in_channels // 2))
 
     def normal_flow(self, x, logdet=None):
         """
