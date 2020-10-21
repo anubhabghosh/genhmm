@@ -95,11 +95,11 @@ if __name__ == "__main__":
         options[network_type]["weightnorm_flag"] = False # Setting weightnorm to purposefully false since it is proving to be unstable for convergence
         print("Weight Normalization applied on Conv1D layers:{}".format(options[network_type]["weightnorm_flag"]))
         #options[network_type]["lr"] = options[network_type]["lr"] / 2 # Decrease Lr proportional to batchsize
-    elif classmap[str(int(iclass_str)-1)] == "ey" or classmap[str(int(iclass_str)-1)] == "ow" or classmap[str(int(iclass_str)-1)] == "k" or classmap[str(int(iclass_str)-1)] == "ih" or classmap[str(int(iclass_str)-1)] == "t" or classmap[str(int(iclass_str)-1)] == "aa" or classmap[str(int(iclass_str)-1)] == "z":
+    elif classmap[str(int(iclass_str)-1)] == "ey" or classmap[str(int(iclass_str)-1)] == "ow" or classmap[str(int(iclass_str)-1)] == "k" or classmap[str(int(iclass_str)-1)] == "ih" or classmap[str(int(iclass_str)-1)] == "t" or classmap[str(int(iclass_str)-1)] == "aa" or classmap[str(int(iclass_str)-1)] == "z" or classmap[str(int(iclass_str)-1)] == "ah":
         #tol = 2.5e-2
         #tol = 2e-2 # Try to see what happens if this criterion is relaxed
         ncon_int = 3
-        if classmap[str(int(iclass_str)-1)] == "ih":
+        if classmap[str(int(iclass_str)-1)] == "ih" or classmap[str(int(iclass_str)-1)] == "ah":
             tol = 2e-2
             options[network_type]["weightnorm_flag"] = False # Setting weightnorm to purposefully false since it is proving to be unstable for convergence
         print("Weight Normalization applied on Conv1D layers:{}".format(options[network_type]["weightnorm_flag"]))

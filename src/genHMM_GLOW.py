@@ -668,7 +668,7 @@ class GenHMM(torch.nn.Module):
         # get the adaptive learning rate
         ada_lr = step_learning_rate_decay(init_lr=self.lr,
                                           global_step=self.global_step,
-                                          minimum=1e-4,
+                                          minimum=1e-5,
                                           anneal_rate=0.98)
         # Reset the convergence monitor
         #if int(self.iepoch) == 1:
