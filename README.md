@@ -138,6 +138,8 @@ python bin/compute_accuracy_cfmatrix.py models/epoch1.mdl data/train.39.pkl data
 *NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. For seeing further instruction, before executing the script press `python bin/compute_accuracy_cfmatrix.py -h` or `python bin/compute_accuracy_voting_noise.py --help`
 
 ## Examples of evaluation results:
+- Examples of some evaluation results using scripts `bin/compute_accuracy_voting.py` is found in the folder: *com_machine/latest_results_Oct20_modifiedWN/* in the form of .json and .log file (for test data) [*NOTE:* The other results found in *com_machine/old_results/* are not to be considered for benchmarking]. 
 
-Additional info to be added soon
+- Examples of some evaluation results using scripts `bin/compute_accuracy_cfmatrix.py` is found in the folder: */cfmetrics_results/* in the form of .json, .log and .mat files (for test data). The class-wise metrics for precision, recall, F1 are found in the form of detailed logs and json files for each of the type of models. Example of a saved file: cfmetrics_<model_name>.{log, json}, where *model_name* is one among *gmm / nvp / glow / voting*.  Example of a saved confusion matrix file: <model_name>_cfmatrix.mat, where *model_name* is one among *gmm / nvp / glow / voting*. 
+### 
 
