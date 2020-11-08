@@ -135,7 +135,7 @@ There is also a script for generating class wise as well as weighted metrics for
 ```
 python bin/compute_accuracy_cfmatrix.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl test
 ```
-*NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. For seeing further instruction, before executing the script press `python bin/compute_accuracy_cfmatrix.py -h` or `python bin/compute_accuracy_voting_noise.py --help`
+*NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. For seeing further instruction, before executing the script press `python bin/compute_accuracy_cfmatrix.py -h` or `python bin/compute_accuracy_cfmatrix.py --help`
 
 ## Examples of evaluation results:
 - Examples of some evaluation results using scripts `bin/compute_accuracy_voting.py` is found in the folder: *com_machine/latest_results_Oct20_modifiedWN/* in the form of .json and .log file (for test data) [*NOTE:* The other results found in *com_machine/old_results/* are not to be considered for benchmarking]. 
