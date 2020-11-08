@@ -122,11 +122,11 @@ def get_test_datafile(base_testing_data_file, noise_type, SNR_level):
 if __name__ == "__main__":
     
     usage = "Usage: python bin/compute_accuracy_voting.py [mdl file] [ training and testing data .pkl files separated by space] [testing type as a string (test/train)]\n" \
-            "Example: python bin/compute_accuracy_voting_noise.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl [test/train] [pink/white/babble/hfchannel] [SNR value in dB]\n" \
+            "Example: python bin/compute_accuracy_voting_noise.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl [test/train] [{pink/white/babble/hfchannel}.{SNR value in dB}dB]\n" \
             "NOTE: Relative paths for different kind of models required to be set within the function\n" \
             "NOTE: Assume default path from where this script is executed is in the glowHMM_* directory\n" 
             
-    if len(sys.argv) != 7 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
+    if len(sys.argv) != 6 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(usage, file=sys.stdout)
         sys.exit(1)
     
@@ -136,7 +136,8 @@ if __name__ == "__main__":
     base_testing_data_file = sys.argv[3]
     testing_type = sys.argv[4]
     noise_type = sys.argv[5]
-    SNR_level = sys.argv[6]
+    #SNR_level = sys.argv[6]
+    noise_type, SNR_level = parse("{}.{}dB", sys.argv[5])
 
     testing_data_file = get_test_datafile(base_testing_data_file, noise_type, SNR_level)
 

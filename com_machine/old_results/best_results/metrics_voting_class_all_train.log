@@ -1,0 +1,318 @@
+Class:1 (oy)
+
+ No. of samples: Train-684, Test-263
+Acc_GMM:0.942	Acc_NVP:0.943	Acc_Glow:0.830	Acc_Voted:0.982
+C_train:0.019	Count3_true:0.744	Count3_false:0.000	Count2_true:0.227	Count2_false:0.004	Count1_true:0.025	Count1_false:0.000
+Sim_NVP-Glow:0.782	Sim_GMM-Glow:0.789	Sim_GMM-NVP:0.892
+
+------------------------------------------------
+Class:2 (r)
+
+ No. of samples: Train-6536, Test-2523
+Acc_GMM:0.742	Acc_NVP:0.750	Acc_Glow:0.993	Acc_Voted:0.947
+C_train:0.182	Count3_true:0.554	Count3_false:0.000	Count2_true:0.377	Count2_false:0.020	Count1_true:0.047	Count1_false:0.002
+Sim_NVP-Glow:0.745	Sim_GMM-Glow:0.737	Sim_GMM-NVP:0.577
+
+------------------------------------------------
+Class:3 (uh)
+
+ No. of samples: Train-535, Test-221
+Acc_GMM:0.751	Acc_NVP:0.606	Acc_Glow:0.193	Acc_Voted:0.645
+C_train:0.015	Count3_true:0.082	Count3_false:0.000	Count2_true:0.456	Count2_false:0.071	Count1_true:0.325	Count1_false:0.065
+Sim_NVP-Glow:0.153	Sim_GMM-Glow:0.157	Sim_GMM-NVP:0.464
+
+------------------------------------------------
+Class:4 (uw)
+
+ No. of samples: Train-2463, Test-750
+Acc_GMM:0.737	Acc_NVP:0.709	Acc_Glow:0.921	Acc_Voted:0.919
+C_train:0.069	Count3_true:0.485	Count3_false:0.000	Count2_true:0.403	Count2_false:0.018	Count1_true:0.077	Count1_false:0.017
+Sim_NVP-Glow:0.661	Sim_GMM-Glow:0.680	Sim_GMM-NVP:0.536
+
+------------------------------------------------
+Class:5 (hh)
+
+ No. of samples: Train-2111, Test-725
+Acc_GMM:0.821	Acc_NVP:0.866	Acc_Glow:0.991	Acc_Voted:0.985
+C_train:0.059	Count3_true:0.702	Count3_false:0.000	Count2_true:0.275	Count2_false:0.001	Count1_true:0.022	Count1_false:0.000
+Sim_NVP-Glow:0.859	Sim_GMM-Glow:0.813	Sim_GMM-NVP:0.709
+
+------------------------------------------------
+Class:6 (ey)
+
+ No. of samples: Train-2281, Test-806
+Acc_GMM:0.838	Acc_NVP:0.899	Acc_Glow:0.584	Acc_Voted:0.920
+C_train:0.064	Count3_true:0.438	Count3_false:0.000	Count2_true:0.452	Count2_false:0.020	Count1_true:0.071	Count1_false:0.020
+Sim_NVP-Glow:0.534	Sim_GMM-Glow:0.496	Sim_GMM-NVP:0.754
+
+------------------------------------------------
+Class:7 (f)
+
+ No. of samples: Train-2216, Test-912
+Acc_GMM:0.881	Acc_NVP:0.948	Acc_Glow:0.992	Acc_Voted:0.995
+C_train:0.062	Count3_true:0.829	Count3_false:0.000	Count2_true:0.162	Count2_false:0.001	Count1_true:0.007	Count1_false:0.000
+Sim_NVP-Glow:0.940	Sim_GMM-Glow:0.874	Sim_GMM-NVP:0.837
+
+------------------------------------------------
+Class:8 (l)
+
+ No. of samples: Train-6751, Test-2699
+Acc_GMM:0.702	Acc_NVP:0.897	Acc_Glow:0.993	Acc_Voted:0.979
+C_train:0.188	Count3_true:0.626	Count3_false:0.000	Count2_true:0.342	Count2_false:0.002	Count1_true:0.022	Count1_false:0.009
+Sim_NVP-Glow:0.891	Sim_GMM-Glow:0.698	Sim_GMM-NVP:0.632
+
+------------------------------------------------
+Class:9 (ow)
+
+ No. of samples: Train-2133, Test-777
+Acc_GMM:0.762	Acc_NVP:0.709	Acc_Glow:0.234	Acc_Voted:0.716
+C_train:0.060	Count3_true:0.128	Count3_false:0.001	Count2_true:0.504	Count2_false:0.069	Count1_true:0.131	Count1_false:0.167
+Sim_NVP-Glow:0.207	Sim_GMM-Glow:0.196	Sim_GMM-NVP:0.556
+
+------------------------------------------------
+Class:10 (w)
+
+ No. of samples: Train-3138, Test-1239
+Acc_GMM:0.846	Acc_NVP:0.907	Acc_Glow:0.834	Acc_Voted:0.958
+C_train:0.088	Count3_true:0.641	Count3_false:0.001	Count2_true:0.308	Count2_false:0.012	Count1_true:0.002	Count1_false:0.036
+Sim_NVP-Glow:0.761	Sim_GMM-Glow:0.714	Sim_GMM-NVP:0.771
+
+------------------------------------------------
+Class:11 (th)
+
+ No. of samples: Train-751, Test-267
+Acc_GMM:0.780	Acc_NVP:0.431	Acc_Glow:0.340	Acc_Voted:0.611
+C_train:0.021	Count3_true:0.108	Count3_false:0.005	Count2_true:0.413	Count2_false:0.157	Count1_true:0.053	Count1_false:0.264
+Sim_NVP-Glow:0.262	Sim_GMM-Glow:0.289	Sim_GMM-NVP:0.358
+
+------------------------------------------------
+Class:12 (ch)
+
+ No. of samples: Train-822, Test-259
+Acc_GMM:0.866	Acc_NVP:0.886	Acc_Glow:0.445	Acc_Voted:0.887
+C_train:0.023	Count3_true:0.347	Count3_false:0.002	Count2_true:0.515	Count2_false:0.036	Count1_true:0.094	Count1_false:0.006
+Sim_NVP-Glow:0.405	Sim_GMM-Glow:0.415	Sim_GMM-NVP:0.779
+
+------------------------------------------------
+Class:13 (dh)
+
+ No. of samples: Train-2786, Test-1042
+Acc_GMM:0.737	Acc_NVP:0.707	Acc_Glow:0.943	Acc_Voted:0.927
+C_train:0.078	Count3_true:0.494	Count3_false:0.000	Count2_true:0.402	Count2_false:0.005	Count1_true:0.065	Count1_false:0.034
+Sim_NVP-Glow:0.668	Sim_GMM-Glow:0.694	Sim_GMM-NVP:0.528
+
+------------------------------------------------
+Class:14 (y)
+
+ No. of samples: Train-1715, Test-634
+Acc_GMM:0.862	Acc_NVP:0.835	Acc_Glow:0.973	Acc_Voted:0.984
+C_train:0.048	Count3_true:0.694	Count3_false:0.001	Count2_true:0.282	Count2_false:0.002	Count1_true:0.013	Count1_false:0.007
+Sim_NVP-Glow:0.815	Sim_GMM-Glow:0.838	Sim_GMM-NVP:0.717
+
+------------------------------------------------
+Class:15 (k)
+
+ No. of samples: Train-4853, Test-1611
+Acc_GMM:0.799	Acc_NVP:0.892	Acc_Glow:0.985	Acc_Voted:0.980
+C_train:0.135	Count3_true:0.703	Count3_false:0.000	Count2_true:0.269	Count2_false:0.004	Count1_true:0.018	Count1_false:0.005
+Sim_NVP-Glow:0.879	Sim_GMM-Glow:0.788	Sim_GMM-NVP:0.717
+
+------------------------------------------------
+Class:16 (ih)
+
+ No. of samples: Train-13692, Test-4654
+Acc_GMM:0.525	Acc_NVP:0.796	Acc_Glow:0.649	Acc_Voted:0.799
+C_train:0.382	Count3_true:0.276	Count3_false:0.001	Count2_true:0.453	Count2_false:0.039	Count1_true:0.079	Count1_false:0.153
+Sim_NVP-Glow:0.527	Sim_GMM-Glow:0.363	Sim_GMM-NVP:0.431
+
+------------------------------------------------
+Class:17 (ah)
+
+ No. of samples: Train-6290, Test-2343
+Acc_GMM:0.541	Acc_NVP:0.547	Acc_Glow:0.823	Acc_Voted:0.782
+C_train:0.175	Count3_true:0.248	Count3_false:0.001	Count2_true:0.453	Count2_false:0.036	Count1_true:0.055	Count1_false:0.207
+Sim_NVP-Glow:0.461	Sim_GMM-Glow:0.453	Sim_GMM-NVP:0.322
+
+------------------------------------------------
+Class:18 (g)
+
+ No. of samples: Train-1995, Test-746
+Acc_GMM:0.849	Acc_NVP:0.888	Acc_Glow:0.907	Acc_Voted:0.978
+C_train:0.056	Count3_true:0.679	Count3_false:0.000	Count2_true:0.288	Count2_false:0.004	Count1_true:0.006	Count1_false:0.024
+Sim_NVP-Glow:0.801	Sim_GMM-Glow:0.770	Sim_GMM-NVP:0.756
+
+------------------------------------------------
+Class:19 (sh)
+
+ No. of samples: Train-2388, Test-870
+Acc_GMM:0.883	Acc_NVP:0.899	Acc_Glow:0.994	Acc_Voted:0.991
+C_train:0.067	Count3_true:0.789	Count3_false:0.000	Count2_true:0.198	Count2_false:0.003	Count1_true:0.004	Count1_false:0.006
+Sim_NVP-Glow:0.894	Sim_GMM-Glow:0.877	Sim_GMM-NVP:0.797
+
+------------------------------------------------
+Class:20 (ng)
+
+ No. of samples: Train-1368, Test-419
+Acc_GMM:0.868	Acc_NVP:0.508	Acc_Glow:0.074	Acc_Voted:0.520
+C_train:0.038	Count3_true:0.030	Count3_false:0.020	Count2_true:0.449	Count2_false:0.365	Count1_true:0.085	Count1_false:0.051
+Sim_NVP-Glow:0.379	Sim_GMM-Glow:0.120	Sim_GMM-NVP:0.466
+
+------------------------------------------------
+Class:21 (p)
+
+ No. of samples: Train-2564, Test-944
+Acc_GMM:0.779	Acc_NVP:0.937	Acc_Glow:0.654	Acc_Voted:0.927
+C_train:0.072	Count3_true:0.478	Count3_false:0.000	Count2_true:0.421	Count2_false:0.012	Count1_true:0.027	Count1_false:0.062
+Sim_NVP-Glow:0.617	Sim_GMM-Glow:0.519	Sim_GMM-NVP:0.730
+
+------------------------------------------------
+Class:22 (d)
+
+ No. of samples: Train-3408, Test-1208
+Acc_GMM:0.738	Acc_NVP:0.879	Acc_Glow:0.486	Acc_Voted:0.853
+C_train:0.095	Count3_true:0.315	Count3_false:0.000	Count2_true:0.488	Count2_false:0.041	Count1_true:0.045	Count1_false:0.111
+Sim_NVP-Glow:0.440	Sim_GMM-Glow:0.381	Sim_GMM-NVP:0.652
+
+------------------------------------------------
+Class:23 (iy)
+
+ No. of samples: Train-6950, Test-2710
+Acc_GMM:0.831	Acc_NVP:0.834	Acc_Glow:0.955	Acc_Voted:0.969
+C_train:0.194	Count3_true:0.660	Count3_false:0.000	Count2_true:0.300	Count2_false:0.011	Count1_true:0.000	Count1_false:0.028
+Sim_NVP-Glow:0.800	Sim_GMM-Glow:0.796	Sim_GMM-NVP:0.697
+
+------------------------------------------------
+Class:24 (eh)
+
+ No. of samples: Train-3853, Test-1440
+Acc_GMM:0.589	Acc_NVP:0.737	Acc_Glow:0.999	Acc_Voted:0.917
+C_train:0.107	Count3_true:0.436	Count3_false:0.000	Count2_true:0.453	Count2_false:0.019	Count1_true:0.009	Count1_false:0.083
+Sim_NVP-Glow:0.736	Sim_GMM-Glow:0.588	Sim_GMM-NVP:0.455
+
+------------------------------------------------
+Class:25 (ay)
+
+ No. of samples: Train-2383, Test-852
+Acc_GMM:0.861	Acc_NVP:0.882	Acc_Glow:0.232	Acc_Voted:0.863
+C_train:0.066	Count3_true:0.177	Count3_false:0.001	Count2_true:0.637	Count2_false:0.039	Count1_true:0.036	Count1_false:0.111
+Sim_NVP-Glow:0.223	Sim_GMM-Glow:0.222	Sim_GMM-NVP:0.762
+
+------------------------------------------------
+Class:26 (t)
+
+ No. of samples: Train-4341, Test-1525
+Acc_GMM:0.658	Acc_NVP:0.811	Acc_Glow:0.981	Acc_Voted:0.945
+C_train:0.121	Count3_true:0.523	Count3_false:0.000	Count2_true:0.406	Count2_false:0.017	Count1_true:0.003	Count1_false:0.052
+Sim_NVP-Glow:0.796	Sim_GMM-Glow:0.649	Sim_GMM-NVP:0.545
+
+------------------------------------------------
+Class:27 (ae)
+
+ No. of samples: Train-3997, Test-1407
+Acc_GMM:0.739	Acc_NVP:0.658	Acc_Glow:0.986	Acc_Voted:0.930
+C_train:0.112	Count3_true:0.475	Count3_false:0.000	Count2_true:0.434	Count2_false:0.025	Count1_true:0.001	Count1_false:0.066
+Sim_NVP-Glow:0.649	Sim_GMM-Glow:0.728	Sim_GMM-NVP:0.506
+
+------------------------------------------------
+Class:28 (dx)
+
+ No. of samples: Train-2707, Test-940
+Acc_GMM:0.900	Acc_NVP:0.852	Acc_Glow:0.999	Acc_Voted:0.991
+C_train:0.076	Count3_true:0.764	Count3_false:0.000	Count2_true:0.224	Count2_false:0.001	Count1_true:0.003	Count1_false:0.008
+Sim_NVP-Glow:0.852	Sim_GMM-Glow:0.899	Sim_GMM-NVP:0.765
+
+------------------------------------------------
+Class:29 (aw)
+
+ No. of samples: Train-729, Test-216
+Acc_GMM:0.896	Acc_NVP:0.702	Acc_Glow:0.204	Acc_Voted:0.743
+C_train:0.020	Count3_true:0.139	Count3_false:0.004	Count2_true:0.554	Count2_false:0.097	Count1_true:0.005	Count1_false:0.200
+Sim_NVP-Glow:0.232	Sim_GMM-Glow:0.203	Sim_GMM-NVP:0.645
+
+------------------------------------------------
+Class:30 (aa)
+
+ No. of samples: Train-6003, Test-2289
+Acc_GMM:0.729	Acc_NVP:0.841	Acc_Glow:0.998	Acc_Voted:0.968
+C_train:0.167	Count3_true:0.614	Count3_false:0.000	Count2_true:0.341	Count2_false:0.003	Count1_true:0.000	Count1_false:0.042
+Sim_NVP-Glow:0.839	Sim_GMM-Glow:0.727	Sim_GMM-NVP:0.618
+
+------------------------------------------------
+Class:31 (er)
+
+ No. of samples: Train-5451, Test-2182
+Acc_GMM:0.788	Acc_NVP:0.857	Acc_Glow:0.994	Acc_Voted:0.974
+C_train:0.152	Count3_true:0.676	Count3_false:0.000	Count2_true:0.288	Count2_false:0.007	Count1_true:0.000	Count1_false:0.029
+Sim_NVP-Glow:0.852	Sim_GMM-Glow:0.784	Sim_GMM-NVP:0.686
+
+------------------------------------------------
+Class:32 (jh)
+
+ No. of samples: Train-1209, Test-372
+Acc_GMM:0.863	Acc_NVP:0.866	Acc_Glow:0.978	Acc_Voted:0.983
+C_train:0.034	Count3_true:0.733	Count3_false:0.000	Count2_true:0.242	Count2_false:0.002	Count1_true:0.000	Count1_false:0.022
+Sim_NVP-Glow:0.846	Sim_GMM-Glow:0.843	Sim_GMM-NVP:0.754
+
+------------------------------------------------
+Class:33 (n)
+
+ No. of samples: Train-8753, Test-3110
+Acc_GMM:0.680	Acc_NVP:0.892	Acc_Glow:0.981	Acc_Voted:0.970
+C_train:0.244	Count3_true:0.596	Count3_false:0.000	Count2_true:0.362	Count2_false:0.006	Count1_true:0.004	Count1_false:0.032
+Sim_NVP-Glow:0.876	Sim_GMM-Glow:0.668	Sim_GMM-NVP:0.612
+
+------------------------------------------------
+Class:34 (s)
+
+ No. of samples: Train-7474, Test-2639
+Acc_GMM:0.850	Acc_NVP:0.976	Acc_Glow:0.996	Acc_Voted:0.997
+C_train:0.208	Count3_true:0.826	Count3_false:0.000	Count2_true:0.170	Count2_false:0.001	Count1_true:0.000	Count1_false:0.003
+Sim_NVP-Glow:0.972	Sim_GMM-Glow:0.847	Sim_GMM-NVP:0.830
+
+------------------------------------------------
+Class:35 (m)
+
+ No. of samples: Train-4023, Test-1568
+Acc_GMM:0.794	Acc_NVP:0.893	Acc_Glow:0.565	Acc_Voted:0.886
+C_train:0.112	Count3_true:0.400	Count3_false:0.003	Count2_true:0.463	Count2_false:0.055	Count1_true:0.001	Count1_false:0.079
+Sim_NVP-Glow:0.531	Sim_GMM-Glow:0.477	Sim_GMM-NVP:0.719
+
+------------------------------------------------
+Class:36 (v)
+
+ No. of samples: Train-1994, Test-710
+Acc_GMM:0.767	Acc_NVP:0.662	Acc_Glow:0.763	Acc_Voted:0.868
+C_train:0.056	Count3_true:0.393	Count3_false:0.000	Count2_true:0.430	Count2_false:0.024	Count1_true:0.001	Count1_false:0.152
+Sim_NVP-Glow:0.524	Sim_GMM-Glow:0.585	Sim_GMM-NVP:0.524
+
+------------------------------------------------
+Class:37 (b)
+
+ No. of samples: Train-2003, Test-801
+Acc_GMM:0.873	Acc_NVP:0.941	Acc_Glow:0.906	Acc_Voted:0.985
+C_train:0.056	Count3_true:0.739	Count3_false:0.000	Count2_true:0.242	Count2_false:0.001	Count1_true:0.000	Count1_false:0.017
+Sim_NVP-Glow:0.853	Sim_GMM-Glow:0.789	Sim_GMM-NVP:0.819
+
+------------------------------------------------
+Class:38 (z)
+
+ No. of samples: Train-3773, Test-1273
+Acc_GMM:0.763	Acc_NVP:0.616	Acc_Glow:0.413	Acc_Voted:0.671
+C_train:0.105	Count3_true:0.200	Count3_false:0.034	Count2_true:0.447	Count2_false:0.246	Count1_true:0.000	Count1_false:0.073
+Sim_NVP-Glow:0.447	Sim_GMM-Glow:0.412	Sim_GMM-NVP:0.536
+
+------------------------------------------------
+Class:39 (sil)
+
+ No. of samples: Train-35847, Test-12769
+Acc_GMM:0.845	Acc_NVP:0.949	Acc_Glow:0.994	Acc_Voted:0.994
+C_train:1.000	Count3_true:0.796	Count3_false:0.000	Count2_true:0.195	Count2_false:0.001	Count1_true:0.000	Count1_false:0.008
+Sim_NVP-Glow:0.943	Sim_GMM-Glow:0.839	Sim_GMM-NVP:0.802
+
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+GMM-HMM -- Total Acc 131771/172970 = 0.7618141874313464
+NVP-HMM -- Total Acc 145857/172970 = 0.843250274614095
+Glow-HMM -- Total Acc 149760/172970 = 0.8658148811932705
+Voted-HMM -- Total Acc 160438/172970 = 0.9275481297334798

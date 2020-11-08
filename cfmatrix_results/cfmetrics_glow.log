@@ -1,0 +1,43 @@
+Class:1	 Phn:oy 	 Phn_type:D 	 Precision:0.429		Recall:0.958	F1_score:0.593
+Class:2	 Phn:r 	 Phn_type:SV 	 Precision:0.902		Recall:0.993	F1_score:0.945
+Class:3	 Phn:uh 	 Phn_type:V 	 Precision:0.259		Recall:0.032	F1_score:0.056
+Class:4	 Phn:uw 	 Phn_type:V 	 Precision:0.293		Recall:0.873	F1_score:0.439
+Class:5	 Phn:hh 	 Phn_type:F 	 Precision:0.872		Recall:0.731	F1_score:0.795
+Class:6	 Phn:ey 	 Phn_type:D 	 Precision:0.384		Recall:0.133	F1_score:0.197
+Class:7	 Phn:f 	 Phn_type:F 	 Precision:0.956		Recall:0.763	F1_score:0.849
+Class:8	 Phn:l 	 Phn_type:SV 	 Precision:0.802		Recall:0.991	F1_score:0.886
+Class:9	 Phn:ow 	 Phn_type:D 	 Precision:0.637		Recall:0.093	F1_score:0.162
+Class:10	 Phn:w 	 Phn_type:SV 	 Precision:0.952		Recall:0.682	F1_score:0.795
+Class:11	 Phn:th 	 Phn_type:F 	 Precision:0.624		Recall:0.442	F1_score:0.518
+Class:12	 Phn:ch 	 Phn_type:P 	 Precision:0.417		Recall:0.019	F1_score:0.037
+Class:13	 Phn:dh 	 Phn_type:F 	 Precision:0.749		Recall:0.936	F1_score:0.832
+Class:14	 Phn:y 	 Phn_type:SV 	 Precision:0.975		Recall:0.494	F1_score:0.655
+Class:15	 Phn:k 	 Phn_type:P 	 Precision:0.847		Recall:0.627	F1_score:0.720
+Class:16	 Phn:ih 	 Phn_type:V 	 Precision:0.533		Recall:0.425	F1_score:0.473
+Class:17	 Phn:ah 	 Phn_type:V 	 Precision:0.626		Recall:0.159	F1_score:0.253
+Class:18	 Phn:g 	 Phn_type:P 	 Precision:0.914		Recall:0.327	F1_score:0.482
+Class:19	 Phn:sh 	 Phn_type:F 	 Precision:0.763		Recall:0.963	F1_score:0.852
+Class:20	 Phn:ng 	 Phn_type:N 	 Precision:0.454		Recall:0.463	F1_score:0.459
+Class:21	 Phn:p 	 Phn_type:P 	 Precision:0.661		Recall:0.767	F1_score:0.710
+Class:22	 Phn:d 	 Phn_type:P 	 Precision:0.670		Recall:0.918	F1_score:0.774
+Class:23	 Phn:iy 	 Phn_type:V 	 Precision:0.838		Recall:0.434	F1_score:0.572
+Class:24	 Phn:eh 	 Phn_type:V 	 Precision:0.395		Recall:0.925	F1_score:0.554
+Class:25	 Phn:ay 	 Phn_type:D 	 Precision:0.907		Recall:0.536	F1_score:0.674
+Class:26	 Phn:t 	 Phn_type:P 	 Precision:0.754		Recall:0.876	F1_score:0.810
+Class:27	 Phn:ae 	 Phn_type:V 	 Precision:0.659		Recall:0.976	F1_score:0.787
+Class:28	 Phn:dx 	 Phn_type:C 	 Precision:0.924		Recall:0.957	F1_score:0.940
+Class:29	 Phn:aw 	 Phn_type:D 	 Precision:0.182		Recall:0.028	F1_score:0.048
+Class:30	 Phn:aa 	 Phn_type:V 	 Precision:0.563		Recall:0.984	F1_score:0.716
+Class:31	 Phn:er 	 Phn_type:SV 	 Precision:0.918		Recall:0.845	F1_score:0.880
+Class:32	 Phn:jh 	 Phn_type:P 	 Precision:0.609		Recall:0.753	F1_score:0.673
+Class:33	 Phn:n 	 Phn_type:N 	 Precision:0.778		Recall:0.736	F1_score:0.756
+Class:34	 Phn:s 	 Phn_type:F 	 Precision:0.919		Recall:0.965	F1_score:0.942
+Class:35	 Phn:m 	 Phn_type:N 	 Precision:0.811		Recall:0.623	F1_score:0.705
+Class:36	 Phn:v 	 Phn_type:F 	 Precision:0.670		Recall:0.900	F1_score:0.768
+Class:37	 Phn:b 	 Phn_type:P 	 Precision:0.877		Recall:0.652	F1_score:0.748
+Class:38	 Phn:z 	 Phn_type:F 	 Precision:0.868		Recall:0.859	F1_score:0.864
+Class:39	 Phn:sil 	 Phn_type:C 	 Precision:0.978		Recall:0.990	F1_score:0.984
+-----------------------------------------------------------------------------------------------------------------------------------
+Weighted Precision for glow-hmm model:0.786 
+Weighted Recall for glow-hmm model:0.764 
+Weighted F1 for glow-hmm model:0.748 
