@@ -120,16 +120,24 @@ Example usage (for fusing predictions on clean test data for each of the three m
 ```
 python bin/compute_accuracy_voting.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl test
 ```
-Note: In this example it has been assumed that we are concerned with fusing predictions for clean test data, i.e. free from varieties of noise. For seeing further instruction, before executing the script press `python bin/compute_accuracy_voting.py -h` or `python bin/compute_accuracy_voting.py --help`
+*NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. In this example it has been assumed that we are concerned with fusing predictions for clean test data, i.e. free from varieties of noise. For seeing further instruction, before executing the script press `python bin/compute_accuracy_voting.py -h` or `python bin/compute_accuracy_voting.py --help`
 
 ### Usage (for noisy data):
 Example usage (for fusing predictions on noisy test data for each of the three models - GMM, NVP, Glow):
 ```
 python bin/compute_accuracy_voting_noise.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl test [pink/white/babble/hfchannel] [SNR value in dB]
 ```
+*NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. 
 For seeing further instruction, before executing the script press `python bin/compute_accuracy_voting_noise.py -h` or `python bin/compute_accuracy_voting_noise.py --help`
 
 ## Additional metrics of interest
-Info to be added soon
+There is also a script for generating class wise as well as weighted metrics for precision, recall and F1-score. These weighted class-wise metrics are also referred to as *macro* class-wise metrics in some common literature. The script basically creates a confusion metrics and returns detailed class wise metrics in separate log files. Example usage (for generating class wise metrics and fusing predictions) for each of the three models (GMM, NVP, Glow) during the evaluation stage is as follows:
+```
+python bin/compute_accuracy_cfmatrix.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl test
+```
+*NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. For seeing further instruction, before executing the script press `python bin/compute_accuracy_cfmatrix.py -h` or `python bin/compute_accuracy_voting_noise.py --help`
 
+## Examples of evaluation results:
+
+Additional info to be added soon
 
