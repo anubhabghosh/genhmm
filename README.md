@@ -77,7 +77,7 @@ $ make watch
 ```
 
 ### Running the training on clean data as well as evaluation on noise data
-Considering testing on noise data at a particular SNR level (in dB), by adding an additional argument `noise=white.25dB`. The argument `white.25dB` translates as the use of the test data corrupted with *white* noise at 25dB SNR value. The number of epochs (`nepochs`) is here number of checkpoints. One checkpoint consist of multiple expectation maximization steps, which you can configure at *default.json*. To run the training of `genHMM` on 39 classes out of 39 classes and during 1 checkpoints, with two distributed jobs, run:
+Considering testing on noise data at a particular SNR level (in dB), by adding an additional argument `noise=white.25dB`. The argument `white.25dB` translates as the use of the test data corrupted with *white* noise at 25dB SNR value. The number of epochs (`nepochs`) is here number of checkpoints. One checkpoint consist of multiple expectation maximization steps, which one can configure at *default.json*. To run the training of `genHMM` on 39 classes out of 39 classes and during 1 checkpoints, with two distributed jobs, run:
 ```
 $ make j=2 noise=white.25dB nclasses=39 totclasses=39 nepochs=1
 ```
@@ -98,19 +98,22 @@ gmmHMM_clean/
 | - <other folders such as bin, data, src, etc.>
 | - <other files>
 | - models/
+|   - <other files>
 |   - epoch1.mdl
 nvpHMM_clean/
 | - <other folders such as bin, data, src, etc.>
 | - <other files>
 | - models/
+|   - <other files>
 |   - epoch1.mdl
 glowHMM_clean/
 | - <other folders such as bin, data, src, etc.>
 | - <other files>
 | - models/
+|   - <other files>
 |   - epoch1.mdl
 ```
-So, the *aggregated model file* used for test set predictions is present in the same folder structure for each of the three models. The internal path to the `epoch1.mdl` for each of the models is set relative to that of the GlowHMM model (`glowHMM_clean/`) (i.e. executing the script (`bin/compute_accuracy_voting.py`) in the folder for `glowHMM_clean`. Also, inside the script, one has to set the name of the output file by using the variables `file1` (.log file) and `dr_filename` (.json file). The results are written down into two files: 
+So, the *aggregated model file* (models/epoch1.mdl) used for test set predictions is present in the same folder structure for each of the three models - GMM, NVP and Glow. The internal path to the `epoch1.mdl` for each of the models should be set (by the user) relative to that of the GlowHMM model (`glowHMM_clean/`) (i.e. executing the script (`bin/compute_accuracy_voting.py`) in the folder for `glowHMM_clean`. Also, inside the script, one has to set the name of the output file by using the variables `file1` (.log file) and `dr_filename` (.json file). The results are written down into two files: 
 - One is a log file (textfile), that contains accuracy metrics computed on the test data for each of the three models, as well a couple of other metrics that are relevant to understanding the model performance.
 - The other one is .json file that contains the same results that are print out in the log file but in the form of a Pandas dataframe so that better analysis can be done on them later on.
 
@@ -138,7 +141,7 @@ python bin/compute_accuracy_cfmatrix.py models/epoch1.mdl data/train.39.pkl data
 *NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. For seeing further instruction, before executing the script press `python bin/compute_accuracy_cfmatrix.py -h` or `python bin/compute_accuracy_cfmatrix.py --help`
 
 ## Examples of evaluation results:
-- Examples of some evaluation results using scripts `bin/compute_accuracy_voting.py` is found in the folder: *com_machine/latest_results_Oct20_modifiedWN/* in the form of .json and .log file (for test data) [*NOTE:* The other results found in *com_machine/old_results/* are not to be considered for benchmarking]. 
+- Examples of some evaluation results using scripts `bin/compute_accuracy_voting.py` is found in the folder: *com_machine/latest_results_Oct20_modifiedWN/* in the form of .json and .log file (for test data) [**NOTE:** The other results found in *com_machine/old_results/* are not to be considered for comparison / drawing conclusions]. 
 
 - Examples of some evaluation results using scripts `bin/compute_accuracy_cfmatrix.py` is found in the folder: */cfmetrics_results/* in the form of .json, .log and .mat files (for test data). The class-wise metrics for precision, recall, F1 are found in the form of detailed logs and json files for each of the type of models. Example of a saved file: cfmetrics_<model_name>.{log, json}, where *model_name* is one among *gmm / nvp / glow / voting*.  Example of a saved confusion matrix file: <model_name>_cfmatrix.mat, where *model_name* is one among *gmm / nvp / glow / voting*. 
 ### 
