@@ -44,7 +44,7 @@ Built for x86_64-pc-linux-gnu
 ## Dataset preparation
 See [README.md](src/timit-preprocessor/README.md) in `src/timit-preprocessor`
 
-## Training
+## Experimental setup
 Start by creating the necessary experimental folders for using model "GenHMM" and data feature length of 39,  with:
 ```bash
 $ make init model=gen nfeats=39 exp_name=genHMM
@@ -58,7 +58,7 @@ Change directory to the created experiment directory:
 ```bash
 $ cd exp/gen/39feats/genHMM
 ```
-### Set training and model configurations
+## Set training and model configurations
 Appropriate training configurations can be set by modifying the parameters associated in the file *default.json*.
 - For setting the values of training and evaluation parameters (under `"Train"`):
   - "niter" :  No. of training iterations
@@ -95,6 +95,17 @@ $ make j=2 noise=white.25dB nclasses=39 totclasses=39 nepochs=1
 Modify the `j` option to change the number of jobs for this experiment.
 
 Other varieties of arguments are also used for the experiments with the general format as <*noise_type*>.<*SNR*>dB, where *noise_type* can be "white" / "babble" / "pink" / "hfchannel" and *SNR* can be 10 / 15 / 20 / 25 (in dB scale)
+
+### Running the training on clean + noisy data (10dB white noise in this case) as well as evaluation on noise data
+
+For creating the combined dataset of clean + noisy data for training models like GMM-HMM and NVP-HMM, the pre-processing scripts must be run in `src/timit-preprocessor/` to first individually generate the clean training data for all classes (`train.39.pkl`), and then the noisy training data by adding white noise at 10dB (`train.39.white.10dB.pkl`). The two files can be combined into one training data file by using the script `bin/combine_trdata.py` (check the help by `python bin/combine_trdata.py -h`. This will yield a single training data file that can be used for noisy training. Training can be done as usual by a similar procedure as earlier (**NOTE**: It may be required to rename the combined training file appropriately to utilise the automated operations of the Makefile)
+
+For testing on noise data at a particular SNR level (in dB), by adding an additional argument `noise=white.10dB`. The argument `white.10dB` translates as the use of the test data corrupted with *white* noise at 10dB SNR value. The number of epochs (`nepochs`) is here number of checkpoints. One checkpoint consist of multiple expectation maximization steps, which one can configure at *default.json*. To run the training of `genHMM` on 39 classes out of 39 classes and during 1 checkpoints, with two distributed jobs, run:
+```
+$ make j=2 noise=white.10dB nclasses=39 totclasses=39 nepochs=1
+```
+Modify the `j` option to change the number of jobs for this experiment.
+Other values of SNR are also used for the experiments with the general format as white.<*SNR*>dB, where *SNR* can be 5dB, 10dB, 12dB, 15dB, etc. (in dB scale)
 
 ### Processed files
 - Model files are created as in the format `epochX_classC.mdlc`, where `X` refers to the present checkpoint and `C` refers to the class under consideration. The aggregated model (`epochX.mdl`) which is mainly used for classification in the evaluation / testing stage (where `X` refers to the present checkpoint). Models as per specific generative model such as GMM / NVP / Glow can be run by modifying the appropriate `model` variable in the *Makefile* (after one has used `cd` to get to the specific experiment folder). 
