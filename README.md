@@ -115,7 +115,7 @@ glowHMM_clean/
 ```
 So, the *aggregated model file* (models/epoch1.mdl) used for test set predictions is present in the same folder structure for each of the three models - GMM, NVP and Glow. The internal path to the `epoch1.mdl` for each of the models should be set (by the user) relative to that of the GlowHMM model (`glowHMM_clean/`) (i.e. executing the script (`bin/compute_accuracy_voting.py`) in the folder for `glowHMM_clean`. Also, inside the script, one has to set the name of the output file by using the variables `file1` (.log file) and `dr_filename` (.json file). The results are written down into two files: 
 - One is a log file (textfile), that contains accuracy metrics computed on the test data for each of the three models, as well a couple of other metrics that are relevant to understanding the model performance.
-- The other one is .json file that contains the same results that are print out in the log file but in the form of a Pandas dataframe so that better analysis can be done on them later on.
+- The other one is .json file that contains the same results that are print out in the log file but in the form of a Pandas dataframe so that better analysis can be done on them later on (**NOTE:** For post-analysis of data stored in .json files, Pandas (v1.0.4) needs to be installed)
 
 ### Usage (for clean data):
 
