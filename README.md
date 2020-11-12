@@ -2,7 +2,7 @@
 
 This repository contains the relevant code for the work: Normalizing Flow based HMMs for Explainable Classification of Speech Phones at 86.6\% Accuracy. 
 
-Forked from the parent repository: https://github.com/FirstHandScientist/genhmm, and the relevant paper for that work: [Powering Hidden Markov Model by Neural Network based Generative Models](https://arxiv.org/abs/1910.05744)
+Forked from the parent repository: https://github.com/FirstHandScientist/genhmm
 
 ### Creation of Virtual environment
 
