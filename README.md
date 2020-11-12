@@ -46,10 +46,14 @@ See [README.md](src/timit-preprocessor/README.md) in `src/timit-preprocessor`
 
 ## Training
 Start by creating the necessary experimental folders for using model "GenHMM" and data feature length of 39,  with:
-
 ```bash
 $ make init model=gen nfeats=39 exp_name=genHMM
 ```
+**NOTE:** The value assigned to the variable `model` decides which model is going to be run. It should be set to:
+- `gmm` : GMM-HMM, or
+- `gen` : NVP-HMM, or
+- `glow` : Glow-HMM
+
 Change directory to the created experiment directory:
 ```bash
 $ cd exp/gen/39feats/genHMM
@@ -63,8 +67,10 @@ Appropriate training configurations can be set by modifying the parameters assoc
   - "n_states_min": No. of minimum number of states in the HMM
   - "n_states_max": No. of maximum number of states in the HMM
 - For setting model specific parameters, the relevant dictionary must be modified. For simulating Gaussian mixture model based HMM, change the parameters under `"GMM"`. Whereas for normalizing flow based mixture models, modify the parameters associated with `"Net"` for RealNVP based HMM (referred to as NVP-HMM) and `"GLOW_Net"` for Glow based HMM (referred to as Glow-HMM) 
+- For running the NVP-HMM, edit the Makefile while being present in the *experiment folder* to set the value of the variable `model` to `gen`. For running GMM-HMM, `model=gmm` and similarly for Glow-HMM set `model=glow`.
 
 ### Running the training on clean data as well as evaluation on clean data
+
 The number of epochs (`nepochs`) is here number of checkpoints. One checkpoint consist of multiple expectation maximization steps, which you can configure at *default.json*. To run the training of `genHMM` on 2 classes out of 39 classes and during 10 checkpoints, with two distributed jobs, run:
 ```
 $ make j=2 nclasses=2 totclasses=39 nepochs=10 
@@ -75,6 +81,11 @@ The logs appear in `log/class...`. you can follow the training with:
 ```bash
 $ make watch
 ```
+Before running the experiment, it is always very helpful to do a sanity check by using the 'dry-run' (`-n`) option of `make`:
+```
+make j=2 nclasses=2 totclasses=39 nepochs=10 -n
+```
+This will produce a detailed set of the commands that are going to be executed in an automated fashion. This helps to check whether the required number of classes are going to be trained or not, where the model files will be saved, where the test results will be saved, etc. 
 
 ### Running the training on clean data as well as evaluation on noise data
 Considering testing on noise data at a particular SNR level (in dB), by adding an additional argument `noise=white.25dB`. The argument `white.25dB` translates as the use of the test data corrupted with *white* noise at 25dB SNR value. The number of epochs (`nepochs`) is here number of checkpoints. One checkpoint consist of multiple expectation maximization steps, which one can configure at *default.json*. To run the training of `genHMM` on 39 classes out of 39 classes and during 1 checkpoints, with two distributed jobs, run:
@@ -86,9 +97,9 @@ Modify the `j` option to change the number of jobs for this experiment.
 Other varieties of arguments are also used for the experiments with the general format as <*noise_type*>.<*SNR*>dB, where *noise_type* can be "white" / "babble" / "pink" / "hfchannel" and *SNR* can be 10 / 15 / 20 / 25 (in dB scale)
 
 ### Processed files
-- Model files are created as in the format `epochX_classC.mdlc`, where X refers to the present checkpoint and C refers to the class under consideration. The aggregated model (`epochX.mdl`) which is mainly used for classification in the evaluation / testing stage (where X refers to the present checkpoint). Models as per specific generative model such as GMM / NVP / Glow can be run by modifying the appropriate `model` variable in the *Makefile* (after one has used `cd` to get to the specific experiment folder). 
+- Model files are created as in the format `epochX_classC.mdlc`, where `X` refers to the present checkpoint and `C` refers to the class under consideration. The aggregated model (`epochX.mdl`) which is mainly used for classification in the evaluation / testing stage (where `X` refers to the present checkpoint). Models as per specific generative model such as GMM / NVP / Glow can be run by modifying the appropriate `model` variable in the *Makefile* (after one has used `cd` to get to the specific experiment folder). 
 
-- Test accuracies are generated and stored in `.accc` files in the format `epochX_classC.accc`, where X refers to the present checkpoint and C refers to the class under consideration. The weighted aggregate of accuracies (weighted average using number of samples in each class) is stored in the file `epochX.acc`, where X refers to the present checkpoint.
+- Test accuracies are generated and stored in `.accc` files in the format `epochX_classC.accc`, where `X` refers to the present checkpoint and `C` refers to the class under consideration. The weighted aggregate of accuracies (weighted average using number of samples in each class) is stored in the file `epochX.acc`, where `X` refers to the present checkpoint.
 
 ## Generate decision fusion results
 The decision fusion results require three models trained on each of the 39 classes (we show results for 39 classes in the paper). This carried out by executing the `main()` associated with the file `bin/compute_accuracy_voting.py`. The required setup is that all three models have a folder setup (or similar) for aggregating model predictions on clean data:
