@@ -150,7 +150,11 @@ python bin/compute_accuracy_voting.py models/epoch1.mdl data/train.39.pkl data/t
 ### Usage (for noisy data):
 Example usage (for fusing predictions on noisy test data for each of the three models - GMM, NVP, Glow):
 ```
-python bin/compute_accuracy_voting_noise.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl test [pink/white/babble/hfchannel] [SNR value in dB]
+python bin/compute_accuracy_voting_noise.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl test [{pink/white/babble/hfchannel}.{SNR value in dB}dB]
+```
+For example for *white* noise, *SNR* value (in dB) is 25dB, on the test set, we have:
+```
+python bin/compute_accuracy_voting_noise.py models/epoch1.mdl data/train.39.pkl data/test.39.pkl test white.25dB
 ```
 *NOTE:* Before executing the script, the paths of the respective model files need to be set in the initial variables *gmm_mdl_path*, *nvp_mdl_path*, and *glow_mdl_path*. Usually the paths are set as relative model paths w.r.t. the location of the model file (models/epoch1.mdl) for the Glow-HMM file. 
 For seeing further instruction, before executing the script press `python bin/compute_accuracy_voting_noise.py -h` or `python bin/compute_accuracy_voting_noise.py --help`
